@@ -110,6 +110,7 @@ ifeq ($(strip $(ICON)),)
 		export APP_ICON := $(TOPDIR)/$(TARGET).png
 	else
 		ifneq (,$(findstring icons-banners/icon.png,$(icons)))
+		ifneq (,$(findstring /icons-banners/icon.png,$(icons)))
 			export APP_ICON := $(TOPDIR)/icons-banners/icon.png
 		endif
 	endif

@@ -322,7 +322,7 @@ int main() {
 				offsetY = 0;
 				
 				if(shouldRenderDebug){
-					sprintf(fpsstr, "FPS: %.0f X:%d Y:%d E:%d %d", sf2d_get_fps(), player.x, player.y, eManager.lastSlot[currentLevel], player.p.strengthTimer);
+					sprintf(fpsstr, "FPS: %.0f X:%d Y:%d E:%d %d", sf2d_get_fps(), player.x, player.y, eManager.lastSlot[currentLevel], player.p.speedTimer);
 					drawText(fpsstr, 2, 225);
 				}
 				

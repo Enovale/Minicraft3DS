@@ -45,7 +45,9 @@ typedef struct {
     bool isCarrying;
     bool isSwimming;
     int swimTimer;
+	int regenTimer;
 	int strengthTimer;
+	int speedTimer;
 	int score;
     Inventory* inv;
     Item* activeItem;

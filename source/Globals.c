@@ -5,6 +5,8 @@ char versionText[34] = "Version 1.3.2";
 char fpsstr[34];
 u8 currentMenu = 0;
 bool UnderStrengthEffect = false;
+bool UnderSpeedEffect = false;
+bool regening = false;
 
 void addItemsToWorld(Item item,int x, int y, int count){
     int i;
@@ -691,6 +693,9 @@ void healPlayer(int amount){
 void strengthPotionEffect() {
 	UnderStrengthEffect = true;
 }
+void speedPotionEffect() {
+	UnderSpeedEffect = true;
+}
 
 s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir){
     
@@ -716,6 +721,12 @@ s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir)
 		case ITEM_STRENGTH_POTION:
 			if(player.p.health < 20 && playerUseEnergy(2) && player.p.strengthTimer == 0){
 				strengthPotionEffect();
+				--item->countLevel;
+			}
+            return 0;
+		case ITEM_SPEED_POTION:
+			if(player.p.health < 20 && playerUseEnergy(2) && player.p.strengthTimer == 0){
+				speedPotionEffect();
 				--item->countLevel;
 			}
             return 0;
@@ -1681,6 +1692,7 @@ void initPlayer(){
 	addItemToInventory(newItem(ITEM_GOLD_APPLE,1), player.p.inv);
 	addItemToInventory(newItem(ITEM_POTION_MAKER,0), player.p.inv);
 	addItemToInventory(newItem(ITEM_STRENGTH_POTION,1), player.p.inv);
+	addItemToInventory(newItem(ITEM_SPEED_POTION,1), player.p.inv);
     addItemToInventory(newItem(TOOL_SHOVEL,4), player.p.inv);
     addItemToInventory(newItem(TOOL_HOE,4), player.p.inv);
     addItemToInventory(newItem(TOOL_SWORD,4), player.p.inv);
@@ -2183,24 +2195,48 @@ void tickPlayer(){
 	player.p.ay = 0;
 	
 	if (k_left.down){
-        player.p.ax -= 1;
-        player.p.dir = 2;
-        ++player.p.walkDist;
+        if (!UnderSpeedEffect) {
+           player.p.ax -= 1;
+           player.p.dir = 2;
+		   ++player.p.walkDist;
+		} else if (UnderSpeedEffect) {
+			player.p.ax -= 2;
+			player.p.dir = 2;
+			player.p.walkDist = player.p.walkDist + 2;
+		}
     }
 	if (k_right.down){
-        player.p.ax += 1;
-        player.p.dir = 3;
-        ++player.p.walkDist;
+		if (!UnderSpeedEffect) {
+           player.p.ax += 1;
+           player.p.dir = 3;
+		   ++player.p.walkDist;
+		} else if (UnderSpeedEffect) {
+			player.p.ax += 2;
+			player.p.dir = 3;
+			player.p.walkDist = player.p.walkDist + 2;
+		}
     }
 	if (k_up.down){
-        player.p.ay -= 1;
-        player.p.dir = 1;
-        ++player.p.walkDist;
+        if (!UnderSpeedEffect) {
+           player.p.ay -= 1;
+           player.p.dir = 1;
+		   ++player.p.walkDist;
+		} else if (UnderSpeedEffect) {
+			player.p.ay -= 2;
+			player.p.dir = 1;
+			player.p.walkDist = player.p.walkDist + 2;
+		}
     }
 	if (k_down.down){
-        player.p.ay += 1;
-        player.p.dir = 0;
-        ++player.p.walkDist;
+        if (!UnderSpeedEffect) {
+           player.p.ay += 1;
+           player.p.dir = 0;
+		   ++player.p.walkDist;
+		} else if (UnderSpeedEffect) {
+			player.p.ay += 2;
+			player.p.dir = 0;
+			player.p.walkDist = player.p.walkDist + 2;
+		}
     }
     if (player.p.staminaRechargeDelay % 2 == 0) moveMob(&player, player.p.ax, player.p.ay);
 	
@@ -2211,6 +2247,10 @@ void tickPlayer(){
 		} else {
 		    hurtEntity(&player,1,-1,0xFFAF00FF);
 		}
+	}
+	
+	if (regening && player.p.regenTimer % 60 == 0) {
+		if(!shouldRenderDebug) --healPlayer(1);
 	}
 	
     if (k_pause.clicked){
@@ -2233,10 +2273,16 @@ void tickPlayer(){
     }
     
     if(isSwimming()) ++player.p.swimTimer;
+	if(regening) ++player.p.regenTimer;
 	if(UnderStrengthEffect) ++player.p.strengthTimer;
 	if(player.p.strengthTimer >= 2000) {
 		player.p.strengthTimer = 0;
 		UnderStrengthEffect = false;
+	}
+	if(UnderSpeedEffect) ++player.p.speedTimer;
+	if(player.p.speedTimer >= 2000) {
+		player.p.speedTimer = 0;
+		UnderSpeedEffect = false;
 	}
     if(player.p.attackTimer > 0) {
 		--player.p.attackTimer;

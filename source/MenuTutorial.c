@@ -1,7 +1,7 @@
 #include "MenuTutorial.h"
 
 u8 pageNum = 0;
-u8 maxPageNum = 6;
+u8 maxPageNum = 7;
 
 u32 biasedCirclePad(u32 in){
     if(in & KEY_CPAD_UP) return KEY_CPAD_UP;
@@ -95,6 +95,14 @@ void renderTutorialPage(bool topScreen){
                 drawText("Mine gem ore to get gems",(400-24*12)/2,154);
                 drawText("It takes 4 ore and 1 coal to",(400-28*12)/2,190);
                 drawText("make an ingot inside a furnace",(400-30*12)/2,210);
+                break;
+			case 7: // Potion Brewing
+                drawTextColor("Brewing",(400-6*12)/2,40,0xFF007FBF);
+                drawText("Use the Potion Maker to make potions",(400-29*12)/2,74);
+                drawText("The potions give you abilities",(400-20*12)/2,94);
+                drawText("Like speed and strength",(400-22*12)/2,114);
+                drawText("They are hard to obtain",(400-22*12)/2,134);
+                drawText("So get to it!",(400-24*12)/2,154);
                 break;
         }
     } else {
@@ -206,6 +214,34 @@ void renderTutorialPage(bool topScreen){
                 render(132,82,72,152,0); // Bread
                 break;
             case 6: //Mining
+                render16(23,32,464,48,0); // iron ore
+                render16(23,52,480,48,0); // gold ore
+                render16(23,72,496,48,0); // gem ore
+                renderb(41,38,88,152,0,ironColor); // Iron ore item
+                renderb(41,58,88,152,0,goldColor); // Gold ore item
+                render(41,78,112,152,0); // Gem item
+                drawText(">",104,74);
+                drawText(">",104,114);
+                drawText(">",104,154);
+                render16(60,32,112,128,0); // Furnace
+                render16(60,52,112,128,0); // Furnace
+                render16(60,72,240,128,0); // Enchanter
+                drawText(">",160,74);
+                drawText(">",160,114);
+                drawText(">",160,154);
+                renderb(88,36,96,152,0,ironColor); // Iron ingot item
+                renderb(88,56,96,152,0,goldColor); // Gold ingot item
+                renderb(88,76,152,144,0,goldColor); // Gem Pickaxe
+                drawText(">",200,74);
+                drawText(">",200,114);
+                render16(106,32,64,128,0); // Anvil
+                render16(106,52,64,128,0); // Anvil
+                drawText(">",244,74);
+                drawText(">",244,114);
+                render(130,36,136,144,0); // Iron Pickaxe
+                render(130,56,144,144,0); // Gold Pickaxe
+                break;
+			case 7: // Brewing
                 render16(23,32,464,48,0); // iron ore
                 render16(23,52,480,48,0); // gold ore
                 render16(23,72,496,48,0); // gem ore

@@ -1496,6 +1496,9 @@ void renderItemIcon(int itemID, int countLevel, int x, int y) {
 	case ITEM_STRENGTH_POTION:
 		render(x, y, 184, 160, 0);
 		break;
+	case ITEM_SPEED_POTION:
+		render(x, y, 191, 160, 0);
+		break;
 	case ITEM_SLIME:
 		renderb(x, y, 88, 152, 0, 0xFF4DC04D);
 		break;
