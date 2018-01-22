@@ -11,7 +11,7 @@ sf2dlib by xerpi: https://github.com/xerpi/sf2dlib
 
 sfillib by xerpi: https://github.com/xerpi/sfillib
 
-zlib: http://www.zlib.net/
+zlib: http://www.zlib.net/ (Pst, pro tip: get this from the link below instead! I'ts much easier!)
 
 Then make sure to have libpng and libjpeg installed, I recommend installing them with this: https://github.com/devkitPro/3ds_portlibs
 
