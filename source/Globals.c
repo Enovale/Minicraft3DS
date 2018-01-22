@@ -2273,7 +2273,6 @@ void tickPlayer(){
     }
     
     if(isSwimming()) ++player.p.swimTimer;
-	if(regening) ++player.p.regenTimer;
 	if(UnderStrengthEffect) ++player.p.strengthTimer;
 	if(player.p.strengthTimer >= 2000) {
 		player.p.strengthTimer = 0;
@@ -2283,6 +2282,11 @@ void tickPlayer(){
 	if(player.p.speedTimer >= 2000) {
 		player.p.speedTimer = 0;
 		UnderSpeedEffect = false;
+	}
+	if(regening) ++player.p.regenTimer;
+	if(player.p.regenTimer >= 2000) {
+		player.p.regenTimer = 0;
+		regening = false;
 	}
     if(player.p.attackTimer > 0) {
 		--player.p.attackTimer;
