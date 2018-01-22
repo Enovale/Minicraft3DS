@@ -47,6 +47,9 @@ Temporary Items
 *.elf
 *.smdh
 *.cia
+*.3ds
+*.icn
+*.bnr
 build
 
 # Eclipse
