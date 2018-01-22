@@ -1,4 +1,5 @@
 #include "Globals.h"
+#include "Menu.h"
 
 char versionText[34] = "Version 1.3.0";
 char fpsstr[34];
@@ -217,7 +218,7 @@ void tickTouchQuickSelect() {
 }
 
 void hurtEntity(Entity* e, int damage, int dir, u32 hurtColor){
-    if (TESTGODMODE && e->type==ENTITY_PLAYER) return;
+    if (shouldRenderDebug && e->type==ENTITY_PLAYER) return;
     if (e->hurtTime > 0) return;
 	int xd = player.x - e->x;
 	int yd = player.y - e->y;
@@ -698,6 +699,13 @@ s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir)
         case ITEM_APPLE:
             if(player.p.health < 10 && playerUseEnergy(2)){
                 healPlayer(1); 
+                --item->countLevel;
+            }
+            return 0;
+		case ITEM_GOLD_APPLE:
+            if(player.p.health < 10 && playerUseEnergy(1)){
+                healPlayer(8); 
+				playerUseEnergy(-10);
                 --item->countLevel;
             }
             return 0;
@@ -1650,28 +1658,28 @@ void initPlayer(){
     player.p.hasWon = false;
     
     addItemToInventory(newItem(ITEM_WORKBENCH,0), player.p.inv);
-    addItemToInventory(newItem(ITEM_POWGLOVE,0), player.p.inv);   
-    
-    /*
+    addItemToInventory(newItem(ITEM_POWGLOVE,0), player.p.inv);	
+    if (shouldRenderDebug == true) {
     addItemToInventory(newItem(TOOL_SHOVEL,4), player.p.inv);
     addItemToInventory(newItem(TOOL_HOE,4), player.p.inv);
     addItemToInventory(newItem(TOOL_SWORD,4), player.p.inv);
     addItemToInventory(newItem(TOOL_PICKAXE,4), player.p.inv);
     addItemToInventory(newItem(TOOL_AXE,4), player.p.inv);
+	
+	addItemToInventory(newItem(ITEM_GOLDINGOT, 60), player.p.inv);
+	addItemToInventory(newItem(ITEM_APPLE, 1), player.p.inv);
     
     addItemToInventory(newItem(ITEM_ANVIL,0), player.p.inv);
     addItemToInventory(newItem(ITEM_CHEST,0), player.p.inv);
     addItemToInventory(newItem(ITEM_OVEN,0), player.p.inv);
     addItemToInventory(newItem(ITEM_FURNACE,0), player.p.inv);
     addItemToInventory(newItem(ITEM_LANTERN,0), player.p.inv);  
-    
-    int i;
-    for (i = 7;i < 28;++i) addItemToInventory(newItem(i,50), player.p.inv);
-    //*/
+	addItemToInventory(newItem(ITEM_ENCHANTER,0), player.p.inv);  
+	}
 }
 
 void playerHurtTile(int tile, int xt, int yt, int damage, int dir){
-    if(TESTGODMODE) damage = 99;
+    if(shouldRenderDebug) damage = 99;
     
     char hurtText[11];
     switch(tile){
@@ -1868,7 +1876,7 @@ void playerHurtTile(int tile, int xt, int yt, int damage, int dir){
 }
 
 bool playerUseEnergy(int amount){
-    if(TESTGODMODE) return true;
+    if(shouldRenderDebug) return true;
     if(amount > player.p.stamina) return false;
     player.p.stamina -= amount;
     return true;
@@ -2163,7 +2171,7 @@ void tickPlayer(){
 	
 	if (swimming && player.p.swimTimer % 60 == 0) {
 		if (player.p.stamina > 0) {
-			if(!TESTGODMODE) --player.p.stamina;
+			if(!shouldRenderDebug) --player.p.stamina;
 		} else {
 		    hurtEntity(&player,1,-1,0xFFAF00FF);
 		}
@@ -2176,7 +2184,7 @@ void tickPlayer(){
     
     if(k_attack.clicked){
         if (player.p.stamina != 0) {
-			if(!TESTGODMODE) player.p.stamina--;
+			if(!shouldRenderDebug) player.p.stamina--;
 			player.p.staminaRecharge = 0;
             playerAttack();
             //addEntityToList(newSlimeEntity(1,200,600,1), &eManager);

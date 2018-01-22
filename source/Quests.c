@@ -84,7 +84,16 @@ void openNPCMenu(int npc) {
     //TODO: Handle upon currentNPC as well as the fitting quest progress
     switch(currentNPC) {
     case NPC_GIRL:
-        
+		currentTalkOptions = 2;
+		currentTalkOption0 = "Trade";
+		currentTalkOption1 = "What do you do?";
+		
+		currentTalk0 = "Hello!";
+        currentTalk1 = "It gets a bit lonely here.";
+        currentTalk2 = "I hope you stay...";
+        currentTalk3 = "But if you don't thats fine.";
+        currentTalk4 = "sigh";
+        currentTalk5 = "";
     break;
     case NPC_PRIEST:
         currentTalkOptions = 3;
@@ -327,7 +336,7 @@ void tickNPCMenu() {
                         questManager.questlines[1].currentQuest = 2;
                         
                         currentTalk0 = "Thank you these will be";
-                        currentTalk1 = "really helpfull.";
+                        currentTalk1 = "really helpful.";
                         currentTalk2 = "Here take this book with";
                         currentTalk3 = "it you should be able to";
                         currentTalk4 = "easily understand anything";
@@ -399,7 +408,7 @@ void renderNPCMenu(int xscr, int yscr) {
     //TODO: Handle upon currentNPC as well as the fitting quest progress
     switch(currentNPC) {
     case NPC_GIRL:
-        if(currentNPCMenu==NPC_MENU_TALK) renderTalkMenu("TODO");
+        if(currentNPCMenu==NPC_MENU_TALK) renderTalkMenu("Girl Jill");
     break;
     case NPC_PRIEST:
         if(currentNPCMenu==NPC_MENU_TALK) renderTalkMenu("Priest Brom");

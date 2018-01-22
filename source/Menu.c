@@ -3,7 +3,7 @@
 char options[][12] = {"Start Game", "Join Game", "How To Play","Settings", "About", "Exit"};
 char pOptions[][24] = {"Return to game", "Save Progress", "Host World", "Exit to title"};
 char keybOptions[][24] = {"Exit and Save", "Exit and Don't save","Reset to default"};
-char setOptions[][24] = {"Rebind Buttons", "Texture packs", "Debug Text:   ", "N3DS Speedup:   ", "Return to title"};
+char setOptions[][24] = {"Rebind Buttons", "Texture packs", "Test Features:   ", "N3DS Speedup:   ", "Return to title"};
 
 // Rebind buttons menu (Settings)
 int keys[] = {
@@ -537,7 +537,7 @@ void tickMenu(int menu){
 						}
 						
 						enterDungeon();
-					} else if(TESTGODMODE) {
+					} else if(shouldRenderDebug) {
                         enterDungeon();
                     }
 				} else {
@@ -1301,7 +1301,8 @@ void renderMenu(int menu,int xscr,int yscr){
 		        drawTextColor("3DS Homebrew Edition",74,120,0xFF00FF00);
 		        drawSizedTextColor("This port was made by David Benepe (Davideesk)",16,144,1.0,0xFF00FF00);
 		        drawSizedTextColor("just for fun in September/October 2015.",44,156,1.0,0xFF00FF00);
-				drawSizedTextColor("Updated and modded by Andre Schweiger (andre111)",8,168,1.0,0xFF00FF00);
+				drawSizedTextColor("Modded by Andre Schweiger (andre111) and ",44,168,1.0,0xFF00FF00);
+				drawSizedTextColor("***REMOVED*** ***REMOVED*** (Enova)",71,180,1.0,0xFF00FF00);
 		        drawSizedTextColor("TY Notch for creating a fun game to remake!",28,192,1.0,0xFF00FF00);
 		    sf2d_end_frame();
 		    sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
@@ -1356,7 +1357,7 @@ void renderMenu(int menu,int xscr,int yscr){
                         drawTextColor("Change the game's art",(320 - (21 * 12))/2,24,0xFF7FFFFF);
                         break;
                     case 2:
-                        drawTextColor("Show FPS/Pos/Entities",(320 - (22 * 12))/2,24,0xFF7FFFFF);
+                        drawTextColor("Enable Testing Features.",(320 - (22 * 12))/2,24,0xFF7FFFFF);
                         break;
                     case 3:
                         drawTextColor("Use the N3DS 804mhz mode",(320 - (24 * 12))/2,24,0xFF7FFFFF);

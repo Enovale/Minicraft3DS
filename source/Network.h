@@ -3,7 +3,7 @@
 #include <3ds.h>
 
 #define NETWORK_WLANCOMMID 0x11441850
-#define NETWORK_PASSPHRASE "minicraft3ds localplay passphrase"
+#define NETWORK_PASSPHRASE "Minicraft3DS localplay passphrase"
 #define NETWORK_CHANNEL 1
 
 #define NETWORK_RECVBUFSIZE UDS_DEFAULT_RECVBUFSIZE

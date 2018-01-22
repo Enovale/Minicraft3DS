@@ -26,15 +26,15 @@ include $(DEVKITARM)/3ds_rules
 #     - icon.png
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
-TARGET		:=	Minicraft3DS
+TARGET		:=	result/Minicraft3DS
 BUILD		:=	build
 SOURCES		:=	source source/minizip
 DATA		:=	data
 INCLUDES	:=	include
 
 APP_TITLE	:= Minicraft 3DS
-APP_DESCRIPTION	:= Minicraft was originally created by Markus "Notch" Perrson. This was ported to the 3DS by Davideesk.
-APP_AUTHOR	:= Davideesk and andre111
+APP_DESCRIPTION	:= Minicraft was originally created by Markus "Notch" Perrson. Ported to the 3DS by Davideesk.
+APP_AUTHOR	:= Davideesk/andre111/Enova
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -109,8 +109,8 @@ ifeq ($(strip $(ICON)),)
 	ifneq (,$(findstring $(TARGET).png,$(icons)))
 		export APP_ICON := $(TOPDIR)/$(TARGET).png
 	else
-		ifneq (,$(findstring icon.png,$(icons)))
-			export APP_ICON := $(TOPDIR)/icon.png
+		ifneq (,$(findstring icons-banners/icon.png,$(icons)))
+			export APP_ICON := $(TOPDIR)/icons-banners/icon.png
 		endif
 	endif
 else
@@ -139,12 +139,12 @@ $(TARGET)-strip.elf: $(BUILD)
 	@$(STRIP) $(TARGET).elf -o $(TARGET)-strip.elf
 #---------------------------------------------------------------------------------
 cci: $(TARGET)-strip.elf
-	@makerom -f cci -rsf resources/$(TARGET).rsf -target d -exefslogo -elf $(TARGET)-strip.elf -o $(TARGET).3ds
-	@echo "built ... sfil_sample.3ds"
+	@makerom -f cci -rsf resources/$(TARGET).rsf -target d -exefslogo -elf $(TARGET)-strip.elf -o $(TARGET).3ds -desc App:0x1B
+	@echo "built ... Minicraft3DS.3ds"
 #---------------------------------------------------------------------------------
 cia: $(TARGET)-strip.elf
 	@makerom -f cia -o $(TARGET).cia -elf $(TARGET)-strip.elf -rsf resources/$(TARGET).rsf -exefslogo -target t
-	@echo "built ... sfil_sample.cia"
+	@echo "built ... Minicraft3DS.cia"
 #---------------------------------------------------------------------------------
 send: $(BUILD)
 	@3dslink $(TARGET).3dsx

@@ -78,8 +78,6 @@
 
 #define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
 
-//TODO: Dont forget to change back
-#define TESTGODMODE true
 
 bool screenShot;
 int loadedtp;

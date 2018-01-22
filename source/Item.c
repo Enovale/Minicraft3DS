@@ -150,6 +150,7 @@ char* getItemName(int itemID, int countLevel){
         case ITEM_FLESH: sprintf(currentName,"%d Flesh", countLevel); return currentName;
         case ITEM_BREAD: sprintf(currentName,"%d Bread", countLevel); return currentName;
         case ITEM_APPLE: sprintf(currentName,"%d Apple", countLevel); return currentName;
+		case ITEM_GOLD_APPLE: sprintf(currentName,"%d Golden Apple", countLevel); return currentName;
         case ITEM_COAL: sprintf(currentName,"%d Coal", countLevel); return currentName;
         case ITEM_IRONORE: sprintf(currentName,"%d Iron ore", countLevel); return currentName;
         case ITEM_GOLDORE: sprintf(currentName,"%d Gold ore", countLevel); return currentName;
@@ -260,6 +261,7 @@ char* getBasicItemName(int itemID, int countLevel){
         case ITEM_FLESH: return "Flesh";
         case ITEM_BREAD: return "Bread";
         case ITEM_APPLE: return "Apple";
+        case ITEM_GOLD_APPLE: return "Gold Apple";
         case ITEM_COAL: return "Coal";
         case ITEM_IRONORE: return "Iron ore";
         case ITEM_GOLDORE: return "Gold ore";

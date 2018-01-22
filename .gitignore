@@ -46,9 +46,13 @@ Temporary Items
 *.3dsx
 *.elf
 *.smdh
+*.cia
 build
 
 # Eclipse
 .settings
 .cproject
 .project
+
+# Copyrighted Executables
+*.exe
