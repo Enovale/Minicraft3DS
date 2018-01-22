@@ -203,7 +203,7 @@ int main() {
     cfguInit();
     CFGU_GetSystemModel(&MODEL_3DS);
 	FILE * file;
-	shouldRenderDebug = true;
+	shouldRenderDebug = false;
 	if ((file = fopen("settings.bin", "r"))) {
         fread(&shouldRenderDebug,sizeof(bool),1,file);
         fread(&shouldSpeedup,sizeof(bool),1,file);
@@ -322,7 +322,7 @@ int main() {
 				offsetY = 0;
 				
 				if(shouldRenderDebug){
-					sprintf(fpsstr, " FPS: %.0f, X:%d, Y:%d, E:%d", sf2d_get_fps(), player.x, player.y, eManager.lastSlot[currentLevel]);
+					sprintf(fpsstr, "FPS: %.0f X:%d Y:%d E:%d %d", sf2d_get_fps(), player.x, player.y, eManager.lastSlot[currentLevel], player.p.strengthTimer);
 					drawText(fpsstr, 2, 225);
 				}
 				

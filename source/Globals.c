@@ -4,6 +4,7 @@
 char versionText[34] = "Version 1.3.0";
 char fpsstr[34];
 u8 currentMenu = 0;
+bool UnderStrengthEffect = false;
 
 void addItemsToWorld(Item item,int x, int y, int count){
     int i;
@@ -681,6 +682,10 @@ void healPlayer(int amount){
     addEntityToList(newTextParticleEntity(healText,0xFF00FF00,player.x,player.y,currentLevel), &eManager);
 }
 
+void strengthPotionEffect() {
+	UnderStrengthEffect = true;
+}
+
 s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir){
     
      // Furniture items
@@ -701,6 +706,12 @@ s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir)
                 healPlayer(1); 
                 --item->countLevel;
             }
+            return 0;
+		case ITEM_STRENGTH_POTION:
+			if(player.p.health < 20 && playerUseEnergy(2)){
+				strengthPotionEffect();
+				--item->countLevel;
+			}
             return 0;
 		case ITEM_GOLD_APPLE:
             if(player.p.health < 10 && playerUseEnergy(1)){
@@ -1659,6 +1670,7 @@ void initPlayer(){
     
     addItemToInventory(newItem(ITEM_WORKBENCH,0), player.p.inv);
     addItemToInventory(newItem(ITEM_POWGLOVE,0), player.p.inv);	
+	addItemToInventory(newItem(ITEM_STRENGTH_POTION,1), player.p.inv);	
     if (shouldRenderDebug == true) {
     addItemToInventory(newItem(TOOL_SHOVEL,4), player.p.inv);
     addItemToInventory(newItem(TOOL_HOE,4), player.p.inv);
@@ -1680,6 +1692,12 @@ void initPlayer(){
 
 void playerHurtTile(int tile, int xt, int yt, int damage, int dir){
     if(shouldRenderDebug) damage = 99;
+	if(UnderStrengthEffect && player.p.strengthTimer <1000) {
+		damage = damage + 7;
+	} else if (player.p.strengthTimer >= 1000) {
+		UnderStrengthEffect = false;
+		player.p.strengthTimer = 0;
+	}
     
     char hurtText[11];
     switch(tile){
@@ -2197,6 +2215,7 @@ void tickPlayer(){
     }
     
     if(isSwimming()) ++player.p.swimTimer;
+	if(UnderStrengthEffect) ++player.p.strengthTimer;
     if(player.p.attackTimer > 0) --player.p.attackTimer;
 	
 	//TODO - maybe move to own function

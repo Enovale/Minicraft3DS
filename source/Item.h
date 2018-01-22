@@ -76,6 +76,7 @@
 #define TOOL_BOW 102
 #define TOOL_MAGIC_COMPASS 103
 #define ITEM_GOLD_APPLE 104
+#define ITEM_STRENGTH_POTION 105
 
 typedef struct Inventory Inventory;
 
