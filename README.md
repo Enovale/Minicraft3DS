@@ -3,6 +3,8 @@
 
 # Dependencies:
 
+make by GNUWin32: http://gnuwin32.sourceforge.net/packages/make.htm (Should probably work, you may have to add it to PATH)
+
 ctrulib by smea: https://github.com/smealum/ctrulib
 
 citro3d by fincs: https://github.com/fincs/citro3d
