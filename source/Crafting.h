@@ -28,6 +28,7 @@ RecipeManager ovenRecipes;
 RecipeManager anvilRecipes;
 RecipeManager loomRecipes;
 RecipeManager enchanterRecipes;
+RecipeManager potionMakerRecipes;
 
 Recipe defineRecipe(int item, int amountOrLevel, int numArgs, ...);
 

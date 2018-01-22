@@ -135,6 +135,7 @@ char* getItemName(int itemID, int countLevel){
         case ITEM_OVEN: return "Oven";
         case ITEM_FURNACE: return "Furnace";
         case ITEM_WORKBENCH: return "Workbench";
+		case ITEM_POTION_MAKER: return "Potion Maker";
         case ITEM_LANTERN: return "Lantern";
         case ITEM_POWGLOVE: return "Power Glove";
         case ITEM_FLOWER: sprintf(currentName,"%d Flower", countLevel); return currentName;
@@ -247,6 +248,7 @@ char* getBasicItemName(int itemID, int countLevel){
         case ITEM_OVEN: return "Oven";
         case ITEM_FURNACE: return "Furnace";
         case ITEM_WORKBENCH: return "Workbench";
+		case ITEM_POTION_MAKER: return "Potion Maker";
         case ITEM_LANTERN: return "Lantern";
         case ITEM_POWGLOVE: return "Power Glove";
         case ITEM_FLOWER: return "Flower";

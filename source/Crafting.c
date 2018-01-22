@@ -104,7 +104,7 @@ void initRecipes(){
 	workbenchRecipes.recipes[20] = defineRecipe(ITEM_WALL_WOOD,1,1,ITEM_WOOD,4);
 	workbenchRecipes.recipes[21] = defineRecipe(ITEM_WALL_STONE,1,1,ITEM_STONE,4);
 
-    anvilRecipes.size = 17;
+    anvilRecipes.size = 18;
     anvilRecipes.recipes = (Recipe*)malloc(sizeof(Recipe) * (anvilRecipes.size));
     anvilRecipes.recipes[0] = defineRecipe(TOOL_SWORD,2,2,ITEM_WOOD,5,ITEM_IRONINGOT,5);
     anvilRecipes.recipes[1] = defineRecipe(TOOL_AXE,2,2,ITEM_WOOD,5,ITEM_IRONINGOT,5);
@@ -123,6 +123,7 @@ void initRecipes(){
 	anvilRecipes.recipes[14] = defineRecipe(ITEM_WALL_IRON,1,1,ITEM_IRONINGOT,2);
 	anvilRecipes.recipes[15] = defineRecipe(ITEM_WALL_GOLD,1,1,ITEM_GOLDINGOT,2);
 	anvilRecipes.recipes[16] = defineRecipe(ITEM_COIN,3,1,ITEM_IRONINGOT,1);
+	anvilRecipes.recipes[17] = defineRecipe(ITEM_POTION_MAKER,1,3,ITEM_IRONINGOT,5,ITEM_GOLDINGOT,25,ITEM_GEM,5);
        	
     furnaceRecipes.size = 3;
     furnaceRecipes.recipes = (Recipe*)malloc(sizeof(Recipe) * (furnaceRecipes.size));
@@ -151,6 +152,10 @@ void initRecipes(){
 	enchanterRecipes.recipes[6] = defineRecipe(ITEM_WALL_GEM,1,1,ITEM_GEM,10);
 	enchanterRecipes.recipes[7] = defineRecipe(ITEM_GOLD_APPLE,1,2,ITEM_APPLE,1,ITEM_GOLDINGOT,15);
 	
+	potionMakerRecipes.size = 1;
+    potionMakerRecipes.recipes = (Recipe*)malloc(sizeof(Recipe) * (potionMakerRecipes.size));
+	potionMakerRecipes.recipes[0] = defineRecipe(ITEM_STRENGTH_POTION,1,3,ITEM_GOLD_APPLE,1,ITEM_GLASS,10,ITEM_IRONINGOT,10);
+	
 }
 
 /* Free up allocated memory */
@@ -161,4 +166,5 @@ void freeRecipes(){
     free(anvilRecipes.recipes);
 	free(loomRecipes.recipes);
 	free(enchanterRecipes.recipes);
+	free(potionMakerRecipes.recipes);
 }

@@ -1092,6 +1092,9 @@ void renderFurniture(int itemID, int x, int y) {
 	case ITEM_ENCHANTER:
 		render16(x, y, 240, 128, 0);
 		break;
+	case ITEM_POTION_MAKER:
+		render16(x, y, 240, 96, 0);
+		break;
 	}
 }
 
@@ -1491,7 +1494,7 @@ void renderItemIcon(int itemID, int countLevel, int x, int y) {
 		render(x, y, 177, 160, 0);
 		break;
 	case ITEM_STRENGTH_POTION:
-		render(x, y, 177, 160, 0);
+		render(x, y, 184, 160, 0);
 		break;
 	case ITEM_SLIME:
 		renderb(x, y, 88, 152, 0, 0xFF4DC04D);
@@ -1522,6 +1525,9 @@ void renderItemIcon(int itemID, int countLevel, int x, int y) {
 		break;
 	case ITEM_ENCHANTER:
 		render(x, y, 144, 160, 0);
+		break;
+	case ITEM_POTION_MAKER:
+		render(x, y, 216, 152, 0);
 		break;
 	case ITEM_WALL_WOOD:
 		renderb(x, y, 224, 144, 0, woodColor);

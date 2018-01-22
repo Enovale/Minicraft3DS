@@ -45,6 +45,7 @@
 
 #define ITEM_LOOM 34
 #define ITEM_ENCHANTER 35
+#define ITEM_POTION_MAKER 36
 
 #define ITEM_WALL_WOOD 51
 #define ITEM_WALL_STONE 52
@@ -71,12 +72,12 @@
 #define ITEM_BOOKSHELVES 73
 #define ITEM_MAGIC_DUST 74
 #define ITEM_COIN 75
+#define ITEM_GOLD_APPLE 76
+#define ITEM_STRENGTH_POTION 77
 
 #define TOOL_BUCKET 101
 #define TOOL_BOW 102
 #define TOOL_MAGIC_COMPASS 103
-#define ITEM_GOLD_APPLE 104
-#define ITEM_STRENGTH_POTION 105
 
 typedef struct Inventory Inventory;
 

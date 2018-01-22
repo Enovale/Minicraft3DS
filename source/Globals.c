@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "Menu.h"
 
-char versionText[34] = "Version 1.3.0";
+char versionText[34] = "Version 1.3.2";
 char fpsstr[34];
 u8 currentMenu = 0;
 bool UnderStrengthEffect = false;
@@ -220,6 +220,12 @@ void tickTouchQuickSelect() {
 
 void hurtEntity(Entity* e, int damage, int dir, u32 hurtColor){
     if (shouldRenderDebug && e->type==ENTITY_PLAYER) return;
+	if(UnderStrengthEffect && player.p.strengthTimer <2000) {
+		damage = damage + 5;
+	} else if (player.p.strengthTimer >= 2000) {
+		UnderStrengthEffect = false;
+		player.p.strengthTimer = 0;
+	}
     if (e->hurtTime > 0) return;
 	int xd = player.x - e->x;
 	int yd = player.y - e->y;
@@ -708,7 +714,7 @@ s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir)
             }
             return 0;
 		case ITEM_STRENGTH_POTION:
-			if(player.p.health < 20 && playerUseEnergy(2)){
+			if(player.p.health < 20 && playerUseEnergy(2) && player.p.strengthTimer == 0){
 				strengthPotionEffect();
 				--item->countLevel;
 			}
@@ -1670,14 +1676,19 @@ void initPlayer(){
     
     addItemToInventory(newItem(ITEM_WORKBENCH,0), player.p.inv);
     addItemToInventory(newItem(ITEM_POWGLOVE,0), player.p.inv);	
-	addItemToInventory(newItem(ITEM_STRENGTH_POTION,1), player.p.inv);	
     if (shouldRenderDebug == true) {
+	addItemToInventory(newItem(ITEM_GLASS,10), player.p.inv);
+	addItemToInventory(newItem(ITEM_GOLD_APPLE,1), player.p.inv);
+	addItemToInventory(newItem(ITEM_POTION_MAKER,0), player.p.inv);
+	addItemToInventory(newItem(ITEM_STRENGTH_POTION,1), player.p.inv);
     addItemToInventory(newItem(TOOL_SHOVEL,4), player.p.inv);
     addItemToInventory(newItem(TOOL_HOE,4), player.p.inv);
     addItemToInventory(newItem(TOOL_SWORD,4), player.p.inv);
     addItemToInventory(newItem(TOOL_PICKAXE,4), player.p.inv);
     addItemToInventory(newItem(TOOL_AXE,4), player.p.inv);
 	
+	addItemToInventory(newItem(ITEM_GEM, 60), player.p.inv);
+	addItemToInventory(newItem(ITEM_IRONINGOT, 60), player.p.inv);
 	addItemToInventory(newItem(ITEM_GOLDINGOT, 60), player.p.inv);
 	addItemToInventory(newItem(ITEM_APPLE, 1), player.p.inv);
     
@@ -1692,9 +1703,9 @@ void initPlayer(){
 
 void playerHurtTile(int tile, int xt, int yt, int damage, int dir){
     if(shouldRenderDebug) damage = 99;
-	if(UnderStrengthEffect && player.p.strengthTimer <1000) {
-		damage = damage + 7;
-	} else if (player.p.strengthTimer >= 1000) {
+	if(UnderStrengthEffect && player.p.strengthTimer <2000) {
+		damage = damage + 8;
+	} else if (player.p.strengthTimer >= 2000) {
 		UnderStrengthEffect = false;
 		player.p.strengthTimer = 0;
 	}
@@ -2073,21 +2084,21 @@ bool useEntity(Entity* e) {
                 return true;
             case ITEM_FURNACE:
                 currentRecipes = &furnaceRecipes;
-                currentCraftTitle = "Crafting";
+                currentCraftTitle = "Smelting";
                 currentMenu = MENU_CRAFTING; 
                 checkCanCraftRecipes(currentRecipes, player.p.inv);
                 sortRecipes(currentRecipes);
                 return true;
             case ITEM_OVEN:
                 currentRecipes = &ovenRecipes;
-                currentCraftTitle = "Crafting";
+                currentCraftTitle = "Cooking";
                 currentMenu = MENU_CRAFTING; 
                 checkCanCraftRecipes(currentRecipes, player.p.inv);
                 sortRecipes(currentRecipes);
                 return true;
             case ITEM_ANVIL:
                 currentRecipes = &anvilRecipes;
-                currentCraftTitle = "Crafting";
+                currentCraftTitle = "Forging";
                 currentMenu = MENU_CRAFTING; 
                 checkCanCraftRecipes(currentRecipes, player.p.inv);
                 sortRecipes(currentRecipes);
@@ -2101,14 +2112,21 @@ bool useEntity(Entity* e) {
                 return true;
 			case ITEM_LOOM:
                 currentRecipes = &loomRecipes;
-                currentCraftTitle = "Crafting";
+                currentCraftTitle = "Sewing";
                 currentMenu = MENU_CRAFTING; 
                 checkCanCraftRecipes(currentRecipes, player.p.inv);
                 sortRecipes(currentRecipes);
                 return true;
 			case ITEM_ENCHANTER:
                 currentRecipes = &enchanterRecipes;
-                currentCraftTitle = "Crafting";
+                currentCraftTitle = "Enchanting";
+                currentMenu = MENU_CRAFTING; 
+                checkCanCraftRecipes(currentRecipes, player.p.inv);
+                sortRecipes(currentRecipes);
+                return true;
+			case ITEM_POTION_MAKER:
+                currentRecipes = &potionMakerRecipes;
+                currentCraftTitle = "Brewing";
                 currentMenu = MENU_CRAFTING; 
                 checkCanCraftRecipes(currentRecipes, player.p.inv);
                 sortRecipes(currentRecipes);
@@ -2216,7 +2234,13 @@ void tickPlayer(){
     
     if(isSwimming()) ++player.p.swimTimer;
 	if(UnderStrengthEffect) ++player.p.strengthTimer;
-    if(player.p.attackTimer > 0) --player.p.attackTimer;
+	if(player.p.strengthTimer >= 2000) {
+		player.p.strengthTimer = 0;
+		UnderStrengthEffect = false;
+	}
+    if(player.p.attackTimer > 0) {
+		--player.p.attackTimer;
+	}
 	
 	//TODO - maybe move to own function
 	//Update Minimap
