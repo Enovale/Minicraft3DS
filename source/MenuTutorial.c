@@ -98,11 +98,10 @@ void renderTutorialPage(bool topScreen){
                 break;
 			case 7: // Potion Brewing
                 drawTextColor("Brewing",(400-6*12)/2,40,0xFF007FBF);
-                drawText("Use the Potion Maker to make potions",(400-29*12)/2,74);
-                drawText("The potions give you abilities",(400-20*12)/2,94);
+                drawText("Create potions.",(400-13*12)/2,74);
+                drawText("The potions give you abilities",(400-29*12)/2,94);
                 drawText("Like speed and strength",(400-22*12)/2,114);
                 drawText("They are hard to obtain",(400-22*12)/2,134);
-                drawText("So get to it!",(400-24*12)/2,154);
                 break;
         }
     } else {
@@ -242,32 +241,7 @@ void renderTutorialPage(bool topScreen){
                 render(130,56,144,144,0); // Gold Pickaxe
                 break;
 			case 7: // Brewing
-                render16(23,32,464,48,0); // iron ore
-                render16(23,52,480,48,0); // gold ore
-                render16(23,72,496,48,0); // gem ore
-                renderb(41,38,88,152,0,ironColor); // Iron ore item
-                renderb(41,58,88,152,0,goldColor); // Gold ore item
-                render(41,78,112,152,0); // Gem item
-                drawText(">",104,74);
-                drawText(">",104,114);
-                drawText(">",104,154);
-                render16(60,32,112,128,0); // Furnace
-                render16(60,52,112,128,0); // Furnace
-                render16(60,72,240,128,0); // Enchanter
-                drawText(">",160,74);
-                drawText(">",160,114);
-                drawText(">",160,154);
-                renderb(88,36,96,152,0,ironColor); // Iron ingot item
-                renderb(88,56,96,152,0,goldColor); // Gold ingot item
-                renderb(88,76,152,144,0,goldColor); // Gem Pickaxe
-                drawText(">",200,74);
-                drawText(">",200,114);
-                render16(106,32,64,128,0); // Anvil
-                render16(106,52,64,128,0); // Anvil
-                drawText(">",244,74);
-                drawText(">",244,114);
-                render(130,36,136,144,0); // Iron Pickaxe
-                render(130,56,144,144,0); // Gold Pickaxe
+                render16(65, 56, 240, 96, 0);
                 break;
         }
         

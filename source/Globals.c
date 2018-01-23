@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "Menu.h"
 
-char versionText[34] = "Version 1.3.2";
+char versionText[34] = "Version 1.4";
 char fpsstr[34];
 u8 currentMenu = 0;
 bool UnderStrengthEffect = false;
@@ -696,6 +696,9 @@ void strengthPotionEffect() {
 void speedPotionEffect() {
 	UnderSpeedEffect = true;
 }
+void regenPotionEffect() {
+	regening = true;
+}
 
 s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir){
     
@@ -727,6 +730,12 @@ s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir)
 		case ITEM_SPEED_POTION:
 			if(player.p.health < 20 && playerUseEnergy(2) && player.p.strengthTimer == 0){
 				speedPotionEffect();
+				--item->countLevel;
+			}
+            return 0;
+		case ITEM_REGEN_POTION:
+			if(player.p.health < 20 && playerUseEnergy(2) && player.p.strengthTimer == 0){
+				regenPotionEffect();
 				--item->countLevel;
 			}
             return 0;
@@ -1693,6 +1702,7 @@ void initPlayer(){
 	addItemToInventory(newItem(ITEM_POTION_MAKER,0), player.p.inv);
 	addItemToInventory(newItem(ITEM_STRENGTH_POTION,1), player.p.inv);
 	addItemToInventory(newItem(ITEM_SPEED_POTION,1), player.p.inv);
+	addItemToInventory(newItem(ITEM_REGEN_POTION,1), player.p.inv);
     addItemToInventory(newItem(TOOL_SHOVEL,4), player.p.inv);
     addItemToInventory(newItem(TOOL_HOE,4), player.p.inv);
     addItemToInventory(newItem(TOOL_SWORD,4), player.p.inv);
@@ -2249,8 +2259,8 @@ void tickPlayer(){
 		}
 	}
 	
-	if (regening && player.p.regenTimer % 60 == 0) {
-		if(!shouldRenderDebug) --healPlayer(1);
+	if (regening && player.p.regenTimer % 90 == 0) {
+		if(!shouldRenderDebug) healPlayer(1);
 	}
 	
     if (k_pause.clicked){

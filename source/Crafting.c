@@ -152,11 +152,11 @@ void initRecipes(){
 	enchanterRecipes.recipes[6] = defineRecipe(ITEM_WALL_GEM,1,1,ITEM_GEM,10);
 	enchanterRecipes.recipes[7] = defineRecipe(ITEM_GOLD_APPLE,1,2,ITEM_APPLE,1,ITEM_GOLDINGOT,15);
 	
-	potionMakerRecipes.size = 2;
+	potionMakerRecipes.size = 3;
     potionMakerRecipes.recipes = (Recipe*)malloc(sizeof(Recipe) * (potionMakerRecipes.size));
 	potionMakerRecipes.recipes[0] = defineRecipe(ITEM_STRENGTH_POTION,1,3,ITEM_GOLD_APPLE,1,ITEM_GLASS,10,ITEM_IRONINGOT,10);
 	potionMakerRecipes.recipes[1] = defineRecipe(ITEM_SPEED_POTION,1,4,ITEM_GEM,2,ITEM_GLASS,10,ITEM_IRONINGOT,10, ITEM_GOLDINGOT,15);
-	
+	potionMakerRecipes.recipes[2] = defineRecipe(ITEM_REGEN_POTION,1,3,ITEM_GOLD_APPLE,2,ITEM_GLASS,10,ITEM_GEM,10);
 }
 
 /* Free up allocated memory */
