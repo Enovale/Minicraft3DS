@@ -36,4 +36,4 @@ If you are going to make a mod of this version, be sure to give credit to Markus
 
 This source code is subject to a lot of change for better optimization/cleanliness.
 
-Forum thread: https://gbatemp.net/threads/release-beta-minicraft-3ds-homebrew-edition.399295/
+Forum thread: https://gbatemp.net/threads/release-new-minicraft3ds-fork-v1-4.494947/
