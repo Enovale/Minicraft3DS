@@ -27,6 +27,7 @@ include $(DEVKITARM)/3ds_rules
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
 TARGET		:=	result/Minicraft3DS
+ICON_TARGET :=  icons-banners/icon
 BUILD		:=	build
 SOURCES		:=	source source/minizip
 DATA		:=	data
@@ -106,13 +107,7 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 ifeq ($(strip $(ICON)),)
 	icons := $(wildcard *.png)
-	ifneq (,$(findstring $(TARGET).png,$(icons)))
-		export APP_ICON := $(TOPDIR)/$(TARGET).png
-	else
-		ifneq (,$(findstring /icons-banners/icon.png,$(icons)))
-			export APP_ICON := $(TOPDIR)/icons-banners/icon.png
-		endif
-	endif
+	export APP_ICON := $(TOPDIR)/$(ICON_TARGET).png
 else
 	export APP_ICON := $(TOPDIR)/$(ICON)
 endif

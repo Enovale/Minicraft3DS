@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "Menu.h"
 
-char versionText[34] = "Version 1.4";
+char versionText[34] = "Version 1.4.1";
 char fpsstr[34];
 u8 currentMenu = 0;
 bool UnderStrengthEffect = false;
