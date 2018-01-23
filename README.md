@@ -19,6 +19,8 @@ Then make sure to have libpng and libjpeg installed, I recommend installing them
 
 # Building
 
+Check the wiki for an indepth look into dependencies and building, but the synopsis is:
+
 As well as the dependencies, put bannertool, and makerom either in your path or in the directory. Then simply run build.bat and everything will be there.
 
 # Version
