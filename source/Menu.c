@@ -444,6 +444,25 @@ void tickMenu(int menu){
 		    if (k_up.clicked){ --curInvSel; if(curInvSel < 0)curInvSel=player.p.inv->lastSlot-1;}
 		    if (k_down.clicked){ ++curInvSel; if(curInvSel > player.p.inv->lastSlot-1)curInvSel=0;}
         break;
+		
+		case MENU_ARMOR:
+            if (k_delete.clicked || k_decline.clicked){
+                 currentMenu = MENU_NONE;
+                 player.p.activeItem = &noItem;
+                 player.p.isCarrying = false;
+            }
+            if (k_accept.clicked){ // Select item from inventory
+                if(player.p.inv->lastSlot!=0){
+                    median = player.p.inv->items[curInvSel]; // create copy of item.
+                    removeItemFromInventory(curInvSel, player.p.inv); // remove original
+                    pushItemToInventoryFront(median, player.p.inv); // add copy to front
+					playerSetActiveItem(&player.p.inv->items[0]); // active item = copy.
+                }
+                currentMenu = MENU_NONE;
+            }
+		    if (k_up.clicked){ --curInvSel; if(curInvSel < 0)curInvSel=player.p.inv->lastSlot-1;}
+		    if (k_down.clicked){ ++curInvSel; if(curInvSel > player.p.inv->lastSlot-1)curInvSel=0;}
+        break;
         
         case MENU_CRAFTING:
         if (k_menu.clicked || k_decline.clicked) currentMenu = MENU_NONE;
@@ -1175,6 +1194,21 @@ void renderMenu(int menu,int xscr,int yscr){
 				drawTextColor("Inventory",24+1,14+1,0xFF000000);
 				drawTextColor("Inventory",24,14,0xFF6FE2E2);
                 renderItemList(player.p.inv, 1,1,24,14, curInvSel);
+		    sf2d_end_frame();
+        break;  
+		case MENU_ARMOR:
+		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
+                if(currentLevel == 0){ 
+                    sf2d_draw_texture_part_scale(minimap[1],(-xscr/3)-256,(-yscr/3)-32,0,0,128,128,12.5,7.5);
+                    sf2d_draw_rectangle(0,0,400,240, 0xAFDFDFDF);
+                }
+	            offsetX = xscr;offsetY = yscr;
+		            renderMenuBackground(xscr,yscr);
+	            offsetX = 0;offsetY = 0;
+                renderFrame(1,1,24,14,0xFFFF1010);
+				drawTextColor("Armor",24+1,14+1,0xFF000000);
+				drawTextColor("Armor",24,14,0xFF6FE2E2);
+                renderArmorList(player.p.inv, 1,1,24,14, curInvSel);
 		    sf2d_end_frame();
         break;  
         case MENU_CRAFTING:

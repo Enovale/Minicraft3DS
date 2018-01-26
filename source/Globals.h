@@ -29,6 +29,7 @@
 #define MENU_DUNGEON 14
 #define MENU_NPC 15
 #define MENU_MULTIPLAYER 16
+#define MENU_ARMOR 17
 
 #define NPC_GIRL 0
 #define NPC_PRIEST 1

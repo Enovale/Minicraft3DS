@@ -8,7 +8,7 @@ void processPacket(networkPacket *packet, u8 type, u16 sender) {
 		if(type==PACKET_REQUEST_MAPDATA) {
 			u8 level = packet->requestMapData.level;
 			
-			if(level>=0 && level<=5) {
+		if(level>=0 && level<=5) {
 				//send back tile data
 				for(int y=0; y<128; y++) {
 					networkPacket packet = {

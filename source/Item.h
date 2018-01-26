@@ -82,6 +82,8 @@
 #define TOOL_BOW 102
 #define TOOL_MAGIC_COMPASS 103
 
+#define ARMOR_TEST 120
+
 typedef struct Inventory Inventory;
 
 typedef struct {

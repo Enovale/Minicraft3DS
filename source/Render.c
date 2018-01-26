@@ -1338,6 +1338,44 @@ void renderItemList(Inventory * inv, int xo, int yo, int x1, int y1,
 	}
 }
 
+void renderArmorList(Inventory * inv, int xo, int yo, int x1, int y1,
+		int selected) {
+	// If lastSlot is 0, then there are no items are in the inventory.
+	bool drawCursor = true;
+	if (selected < 0) {
+		drawCursor = false;
+		selected = 0;
+	}
+	int w = x1 - xo;
+	int h = y1 - yo - 2;
+	int i1 = inv->lastSlot;
+	if (i1 > h)
+		i1 = h;
+	int io = selected - h / 2;
+	if (io > inv->lastSlot - h)
+		io = inv->lastSlot - h;
+	if (io < 0)
+		io = 0;
+
+	int i;
+	for (i = 0; i < i1; ++i) {
+		if(inv->items[i + io].id > 119 && inv->items[i + io].id < 141) {
+		renderItemWithText(&inv->items[i + io], (1 + xo) << 4,
+				(i + 1 + yo) << 4);
+		}
+	}
+
+	if (drawCursor) {
+		int yy = selected + 1 - io + yo;
+		sf2d_draw_rectangle((xo << 4) - (offsetX << 1),
+				(yy << 4) - (offsetY << 1), 12, 12, 0xFF);
+		drawText(">", (xo << 4), yy << 4);
+		sf2d_draw_rectangle(((xo + w) << 4) - 12 - (offsetX << 1),
+				(yy << 4) - (offsetY << 1), 12, 12, 0xFF);
+		drawText("<", ((xo + w) << 4) - 12, yy << 4);
+	}
+}
+
 void renderRecipes(RecipeManager * r, int xo, int yo, int x1, int y1, int selected) {
 	int size = r->size;
 	if (size < 1)
