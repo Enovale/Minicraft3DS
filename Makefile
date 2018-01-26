@@ -27,7 +27,8 @@ include $(DEVKITARM)/3ds_rules
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
 TARGET		:=	result/Minicraft3DS
-ICON_TARGET :=  icons-banners/icon
+ICON_TARGET     :=      icons-banners/icon
+RESULT         :=      result
 BUILD		:=	build
 SOURCES		:=	source source/minizip
 DATA		:=	data
@@ -122,6 +123,7 @@ endif
 all: $(BUILD)
 
 $(BUILD):
+	@test -d $(RESULT) || mkdir $(RESULT)
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 

@@ -25,7 +25,7 @@ As well as the dependencies, put bannertool, and makerom either in your path or 
 
 # Version
 
-Current Version: Version 1.4
+Current Version: Version 1.4.1
 
 # License
 
