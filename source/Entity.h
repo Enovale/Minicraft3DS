@@ -47,6 +47,7 @@ typedef struct {
     int swimTimer;
 	int regenTimer;
 	int strengthTimer;
+	int swimBreathTimer;
 	int speedTimer;
 	int score;
     Inventory* inv;

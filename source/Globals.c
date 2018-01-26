@@ -4,9 +4,6 @@
 char versionText[34] = "Version 1.4.1";
 char fpsstr[34];
 u8 currentMenu = 0;
-bool UnderStrengthEffect = false;
-bool UnderSpeedEffect = false;
-bool regening = false;
 
 void addItemsToWorld(Item item,int x, int y, int count){
     int i;
@@ -222,12 +219,6 @@ void tickTouchQuickSelect() {
 
 void hurtEntity(Entity* e, int damage, int dir, u32 hurtColor){
     if (shouldRenderDebug && e->type==ENTITY_PLAYER) return;
-	if(UnderStrengthEffect && player.p.strengthTimer <2000) {
-		damage = damage + 5;
-	} else if (player.p.strengthTimer >= 2000) {
-		UnderStrengthEffect = false;
-		player.p.strengthTimer = 0;
-	}
     if (e->hurtTime > 0) return;
 	int xd = player.x - e->x;
 	int yd = player.y - e->y;
@@ -690,14 +681,19 @@ void healPlayer(int amount){
     addEntityToList(newTextParticleEntity(healText,0xFF00FF00,player.x,player.y,currentLevel), &eManager);
 }
 
-void strengthPotionEffect() {
-	UnderStrengthEffect = true;
-}
-void speedPotionEffect() {
-	UnderSpeedEffect = true;
-}
-void regenPotionEffect() {
-	regening = true;
+void potionEffect(int type) {
+	if(type == 1) {
+		UnderStrengthEffect = true;
+	}
+	if(type == 2) {
+		UnderSpeedEffect = true;
+	}
+	if (type == 3) {
+		regening = true;
+	}
+	if (type == 4) {
+		UnderSwimBreathEffect = true;
+	}
 }
 
 s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir){
@@ -723,19 +719,25 @@ s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir)
             return 0;
 		case ITEM_STRENGTH_POTION:
 			if(player.p.health < 20 && playerUseEnergy(2) && player.p.strengthTimer == 0){
-				strengthPotionEffect();
+				potionEffect(1);
 				--item->countLevel;
 			}
             return 0;
 		case ITEM_SPEED_POTION:
 			if(player.p.health < 20 && playerUseEnergy(2) && player.p.strengthTimer == 0){
-				speedPotionEffect();
+				potionEffect(2);
 				--item->countLevel;
 			}
             return 0;
 		case ITEM_REGEN_POTION:
 			if(player.p.health < 20 && playerUseEnergy(2) && player.p.strengthTimer == 0){
-				regenPotionEffect();
+				potionEffect(3);
+				--item->countLevel;
+			}
+            return 0;
+		case ITEM_SWIM_BREATH_POTION:
+			if(player.p.health < 20 && playerUseEnergy(2) && player.p.strengthTimer == 0){
+				potionEffect(4);
 				--item->countLevel;
 			}
             return 0;
@@ -1674,6 +1676,10 @@ void spawnPlayer(){
 }
 
 void initPlayer(){
+	UnderStrengthEffect = false;
+	UnderSpeedEffect = false;
+	regening = false;
+	UnderSwimBreathEffect = false;
     player.type = ENTITY_PLAYER;
     spawnPlayer();
     player.xr = 4;
@@ -1703,6 +1709,7 @@ void initPlayer(){
 	addItemToInventory(newItem(ITEM_STRENGTH_POTION,1), player.p.inv);
 	addItemToInventory(newItem(ITEM_SPEED_POTION,1), player.p.inv);
 	addItemToInventory(newItem(ITEM_REGEN_POTION,1), player.p.inv);
+	addItemToInventory(newItem(ITEM_SWIM_BREATH_POTION,1), player.p.inv);
     addItemToInventory(newItem(TOOL_SHOVEL,4), player.p.inv);
     addItemToInventory(newItem(TOOL_HOE,4), player.p.inv);
     addItemToInventory(newItem(TOOL_SWORD,4), player.p.inv);
@@ -1725,12 +1732,6 @@ void initPlayer(){
 
 void playerHurtTile(int tile, int xt, int yt, int damage, int dir){
     if(shouldRenderDebug) damage = 99;
-	if(UnderStrengthEffect && player.p.strengthTimer <2000) {
-		damage = damage + 8;
-	} else if (player.p.strengthTimer >= 2000) {
-		UnderStrengthEffect = false;
-		player.p.strengthTimer = 0;
-	}
     
     char hurtText[11];
     switch(tile){
@@ -1981,7 +1982,11 @@ void playerAttack(){
 			if (player.p.dir == 3) xt = (player.x + r) >> 4;
 
 			if (xt >= 0 && yt >= 0 && xt < 128 && 128) {
+				if(UnderStrengthEffect && player.p.strengthTimer <2000) {
+					playerHurtTile(getTile(xt,yt), xt, yt, (rand()%3 + 5) + 1, player.p.dir);
+				} else {
                 playerHurtTile(getTile(xt,yt), xt, yt, (rand()%3) + 1, player.p.dir);
+				}
 			}
 		}
 }
@@ -2251,7 +2256,7 @@ void tickPlayer(){
     if (player.p.staminaRechargeDelay % 2 == 0) moveMob(&player, player.p.ax, player.p.ay);
 	
 	
-	if (swimming && player.p.swimTimer % 60 == 0) {
+	if (swimming && player.p.swimTimer % 60 == 0 && !UnderSwimBreathEffect) {
 		if (player.p.stamina > 0) {
 			if(!shouldRenderDebug) --player.p.stamina;
 		} else {
@@ -2297,6 +2302,11 @@ void tickPlayer(){
 	if(player.p.regenTimer >= 2000) {
 		player.p.regenTimer = 0;
 		regening = false;
+	}
+	if(UnderSwimBreathEffect) ++player.p.swimBreathTimer;
+	if(player.p.swimBreathTimer >= 2000) {
+		player.p.swimBreathTimer = 0;
+		UnderSwimBreathEffect = false;
 	}
     if(player.p.attackTimer > 0) {
 		--player.p.attackTimer;
