@@ -37,14 +37,6 @@ void saveCurrentWorld(char * filename, EntityManager * eManager, Entity * player
     // Player Data
     fwrite(&player->p.score, sizeof(int), 1, file);
     fwrite(&player->p.hasWonSaved, sizeof(bool), 1, file);
-    fwrite(&UnderStrengthEffect, sizeof(bool), 1, file);
-    fwrite(&UnderSpeedEffect, sizeof(bool), 1, file);
-    fwrite(&regening, sizeof(bool), 1, file);
-    fwrite(&UnderSwimBreathEffect, sizeof(bool), 1, file);
-	fwrite(&player->p.strengthTimer, sizeof(int), 1, file);
-	fwrite(&player->p.speedTimer, sizeof(int), 1, file);
-	fwrite(&player->p.swimBreathTimer, sizeof(int), 1, file);
-	fwrite(&player->p.regenTimer, sizeof(int), 1, file);
     fwrite(&player->p.health, sizeof(s16), 1, file);
     fwrite(&player->x, sizeof(s16), 1, file);
     fwrite(&player->y, sizeof(s16), 1, file);
@@ -140,6 +132,16 @@ void saveCurrentWorld(char * filename, EntityManager * eManager, Entity * player
 	fwrite(&season, sizeof(u8), 1, file);
     fwrite(&rain, sizeof(bool), 1, file);
     
+    //Potion Data
+    fwrite(&UnderStrengthEffect, sizeof(bool), 1, file);
+    fwrite(&UnderSpeedEffect, sizeof(bool), 1, file);
+    fwrite(&regening, sizeof(bool), 1, file);
+    fwrite(&UnderSwimBreathEffect, sizeof(bool), 1, file);
+    fwrite(&player->p.strengthTimer, sizeof(int), 1, file);
+    fwrite(&player->p.speedTimer, sizeof(int), 1, file);
+    fwrite(&player->p.swimBreathTimer, sizeof(int), 1, file);
+    fwrite(&player->p.regenTimer, sizeof(int), 1, file);
+
     fclose(file);
 }
 
@@ -151,14 +153,6 @@ int loadWorld(char * filename, EntityManager * eManager, Entity * player, u8 * m
             
             fread(&player->p.score, sizeof(int), 1, file);
             fread(&player->p.hasWonSaved, sizeof(bool), 1, file);
-			fread(&UnderStrengthEffect, sizeof(bool), 1, file);
-			fread(&UnderSpeedEffect, sizeof(bool), 1, file);
-			fread(&regening, sizeof(bool), 1, file);
-			fread(&UnderSwimBreathEffect, sizeof(bool), 1, file);
-            fread(&player->p.strengthTimer, sizeof(int), 1, file);
-            fread(&player->p.speedTimer, sizeof(int), 1, file);
-            fread(&player->p.swimBreathTimer, sizeof(int), 1, file);
-            fread(&player->p.regenTimer, sizeof(int), 1, file);
             fread(&player->p.health, sizeof(s16), 1, file);
             fread(&player->x, sizeof(s16), 1, file);
             fread(&player->y, sizeof(s16), 1, file);
@@ -419,6 +413,15 @@ int loadWorld(char * filename, EntityManager * eManager, Entity * player, u8 * m
             fread(&day, sizeof(int), 1, file);
             fread(&season, sizeof(u8), 1, file);
             fread(&rain, sizeof(bool), 1, file);
+            //Potion Data
+            fread(&UnderStrengthEffect, sizeof(bool), 1, file);
+            fread(&UnderSpeedEffect, sizeof(bool), 1, file);
+            fread(&regening, sizeof(bool), 1, file);
+            fread(&UnderSwimBreathEffect, sizeof(bool), 1, file);
+            fread(&player->p.strengthTimer, sizeof(int), 1, file);
+            fread(&player->p.speedTimer, sizeof(int), 1, file);
+            fread(&player->p.swimBreathTimer, sizeof(int), 1, file);
+            fread(&player->p.regenTimer, sizeof(int), 1, file);
 			
             fclose(file);
             return 0;

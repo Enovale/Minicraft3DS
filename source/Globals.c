@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "Menu.h"
 
-char versionText[34] = "Version 1.4.1";
+char versionText[34] = "Version 1.5";
 char fpsstr[34];
 u8 currentMenu = 0;
 
@@ -2285,6 +2285,11 @@ void tickPlayer(){
     if (k_menu.clicked){ 
 		curInvSel = 0;
         if(!playerUse()) currentMenu = MENU_INVENTORY; 
+    }
+
+    if (k_delete.clicked){ 
+		curInvSel = 0;
+        if(!playerUse()) currentMenu = MENU_ARMOR; 
     }
     
     if(isSwimming()) ++player.p.swimTimer;
