@@ -28,7 +28,7 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	result/Minicraft3DS
 ICON_TARGET     :=      icons-banners/icon
-RESULT         :=      result
+RESULT          :=      result
 BUILD		:=	build
 SOURCES		:=	source source/minizip
 DATA		:=	data
