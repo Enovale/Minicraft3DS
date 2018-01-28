@@ -27,12 +27,13 @@ include $(DEVKITARM)/3ds_rules
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
 TARGET		:=	result/Minicraft3DS
-ICON_TARGET     :=      icons-banners/icon
-RESULT          :=      result
+ICON_TARGET :=  icons-banners/icon
+RESULT      :=  result
 BUILD		:=	build
 SOURCES		:=	source source/minizip
 DATA		:=	data
 INCLUDES	:=	include
+ROMFS       :=  romfs
 
 APP_TITLE	:= Minicraft 3DS
 APP_DESCRIPTION	:= Minicraft was originally created by Markus "Notch" Perrson. Ported to the 3DS by Davideesk.
@@ -117,6 +118,10 @@ ifeq ($(strip $(NO_SMDH)),)
 	export _3DSXFLAGS += --smdh=$(CURDIR)/$(TARGET).smdh
 endif
 
+ifneq ($(ROMFS),)
+	export _3DSXFLAGS += --romfs=$(CURDIR)/$(ROMFS)
+endif
+
 .PHONY: $(BUILD) clean all
 
 #---------------------------------------------------------------------------------
@@ -140,7 +145,7 @@ cci: $(TARGET)-strip.elf
 	@echo "built ... Minicraft3DS.3ds"
 #---------------------------------------------------------------------------------
 cia: $(TARGET)-strip.elf
-	@makerom -f cia -o $(TARGET).cia -elf $(TARGET)-strip.elf -rsf resources/$(TARGET).rsf -exefslogo -target t
+	@makerom -f cia -o $(TARGET).cia -elf $(TARGET)-strip.elf -rsf icons-banners/$(TARGET).rsf -exefslogo -target t
 	@echo "built ... Minicraft3DS.cia"
 #---------------------------------------------------------------------------------
 send: $(BUILD)

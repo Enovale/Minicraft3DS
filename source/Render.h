@@ -58,6 +58,7 @@ void renderEntities(int x, int y, EntityManager* em);
 
 void renderRecipes(RecipeManager * r, int xo, int yo, int x1, int y1, int selected);
 void renderItemList(Inventory * inv, int xo, int yo, int x1, int y1, int selected);
+void renderArmorList(Inventory * inv, int xo, int yo, int x1, int y1, int selected);
 void renderItemWithText(Item* item, int x, int y);
 void renderItemStuffWithText(int itemID, int itemCL, bool onlyOne, int x, int y);
 void renderItemWithTextCentered(Item* item, int width, int y);

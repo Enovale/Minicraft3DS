@@ -1339,25 +1339,30 @@ void renderItemList(Inventory * inv, int xo, int yo, int x1, int y1,
 }
 
 void renderArmorList(Inventory * inv, int xo, int yo, int x1, int y1,
-		int selected) {
+	int selected) {
 	// If lastSlot is 0, then there are no items are in the inventory.
 	bool drawCursor = true;
-	if (selected < 0) {
-		drawCursor = false;
-		selected = 0;
-	}
 	int w = x1 - xo;
 	int h = y1 - yo - 2;
 	int i1 = inv->lastSlot;
 	if (i1 > h)
 		i1 = h;
-	int io = selected - h / 2;
-	if (io > inv->lastSlot - h)
-		io = inv->lastSlot - h;
-	if (io < 0)
-		io = 0;
-
 	int i;
+	int io = selected - h / 2;
+	int armorcount;
+	for (i = 0; i < i1; ++i) {
+		if(inv->items[i + io].id > 119 && inv->items[i + io].id < 141) {
+			armorcount = armorcount + 1;
+		}
+	}
+	if (selected < 0) {
+		drawCursor = false;
+		selected = 0;
+	}
+	if (io > inv->lastSlot - h)
+		io = armorcount;
+	if (io < 0)
+		io = 1;
 	for (i = 0; i < i1; ++i) {
 		if(inv->items[i + io].id > 119 && inv->items[i + io].id < 141) {
 		renderItemWithText(&inv->items[i + io], (1 + xo) << 4,

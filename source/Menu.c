@@ -1208,7 +1208,7 @@ void renderMenu(int menu,int xscr,int yscr){
                 renderFrame(1,1,24,14,0xFFFF1010);
 				drawTextColor("Armor",24+1,14+1,0xFF000000);
 				drawTextColor("Armor",24,14,0xFF6FE2E2);
-                renderArmorList(player.p.inv, 1,1,24,14, curInvSel);
+                renderArmorList(player.p.inv, 1,1,24,14, 1);
 		    sf2d_end_frame();
         break;  
         case MENU_CRAFTING:
