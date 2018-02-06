@@ -1,33 +1,72 @@
 # Minicraft3DS
-3DS Homebrew port of Notch's ludum dare game "Minicraft"
+3DS Homebrew port of Notch's ludum dare game "Minicraft"  
+Current Version: Version 1.6.1  
 
-# Dependencies:
+----------
 
-make by GNUWin32: http://gnuwin32.sourceforge.net/packages/make.htm (Should probably work, you may have to add it to PATH)
+**Download:**
 
-ctrulib by smea: https://github.com/smealum/ctrulib
+If you just want to download the game prebuilt check the releases tab in Github:  
+https://github.com/andre111/Minicraft3DS/releases  
+For building the game yourself look below.  
 
-citro3d by fincs: https://github.com/fincs/citro3d
 
-sf2dlib by xerpi: https://github.com/xerpi/sf2dlib
+----------
 
-sfillib by xerpi: https://github.com/xerpi/sfillib
 
-zlib: http://www.zlib.net/ (Pst, pro tip: get this from the link below instead! I'ts much easier!)
+**Dependencies:**
 
-Then make sure to have libpng and libjpeg installed, I recommend installing them with this: https://github.com/devkitPro/3ds_portlibs
+For building and installing the dependencies look below.
 
-# Building
+ctrulib by smea: https://github.com/smealum/ctrulib  
+citro3d by fincs: https://github.com/fincs/citro3d  
+sf2dlib by xerpi: https://github.com/xerpi/sf2dlib  
+sfillib by xerpi: https://github.com/xerpi/sfillib  
+zlib: http://www.zlib.net/  
 
-Check the wiki for an indepth look into dependencies and building, but the synopsis is:
 
-As well as the dependencies, put bannertool, and makerom either in your path or in the directory. Then simply run build.bat and everything will be there.
+----------
 
-# Version
 
-Current Version: Version 1.4.1
+**Building:**
 
-# License
+**1. Install devkitARM by devkitPro**
+- On Windows download https://sourceforge.net/projects/devkitpro/files/Automated%20Installer/
+- And install atleast Minimal System and devkitARM
+- This includes make, ctrulib and citro3d
+
+**2. Install zlib, libjpeg-turbo and libpng**
+- Download 3DS-Portlibs: https://github.com/devkitPro/3ds_portlibs
+- Run these commands:
+		
+```
+	make zlib
+	make install-zlib
+	make libjpeg-turbo
+	make libpng
+	make install
+```
+
+**3. Install sf2dlib**
+- Download https://github.com/xerpi/sf2dlib
+- In the libsf2d directory run these commands:
+```
+	make
+	make install
+```
+**4. Install sfillib**
+- Download https://github.com/xerpi/sfillib
+- In the libsfil directory run these commands:
+```
+	make
+	make install
+```
+
+**5. You can now build Minicraft3DS 3dsx and elf files by running make**
+
+
+----------
+
 
 You can do anything with the source code (besides sell it) as long as you give proper credit to the right people. 
 If you are going to make a mod of this version, be sure to give credit to Markus "Notch" Perrson because he did create the original game after all.

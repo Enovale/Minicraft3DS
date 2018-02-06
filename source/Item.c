@@ -2,13 +2,13 @@
 
 char currentName[16];
 
-bool isItemEmpty(Item* item){
+bool isItemEmpty(Item* item) {
     if(item->id < 6 || item->id > 100 || item->onlyOne == true) return false;
     if(item->countLevel < 1) return true;
     return false;
 }
 
-void pushItemToInventoryFront(Item item, Inventory * inv){
+void pushItemToInventoryFront(Item item, Inventory * inv) {
     if(inv->lastSlot < 300) ++inv->lastSlot;
     int i;
     for(i = inv->lastSlot;i > 0;--i){ 
@@ -21,7 +21,7 @@ void pushItemToInventoryFront(Item item, Inventory * inv){
     
 }
 
-void addItemToInventory(Item item, Inventory * inv){
+void addItemToInventory(Item item, Inventory * inv) {
     if(!item.onlyOne){
         int i;
         for(i = 0;i < inv->lastSlot;++i){ //Search inventory if item already exists.
@@ -38,12 +38,12 @@ void addItemToInventory(Item item, Inventory * inv){
     ++inv->lastSlot;
 }
 
-void removeItemFromCurrentInv(Item* item){
+void removeItemFromCurrentInv(Item* item) {
     removeItemFromInventory(item->slotNum, (Inventory*)item->invPtr);
 }
 
 Item nullItem;
-void removeItemFromInventory(int slot, Inventory * inv){
+void removeItemFromInventory(int slot, Inventory * inv) {
     int i;
     for(i = slot;i < inv->lastSlot - 1;++i){ 
         inv->items[i] = inv->items[i + 1]; // Move the items down.
@@ -53,7 +53,7 @@ void removeItemFromInventory(int slot, Inventory * inv){
     inv->items[inv->lastSlot] = nullItem; // Make the last slot null.
 }
 
-Item newItem(int id, int cLevel){
+Item newItem(int id, int cLevel) {
     Item item;
     item.id = id;
     if(id != ITEM_NULL){
@@ -66,7 +66,7 @@ Item newItem(int id, int cLevel){
     return item;
 }
 
-Item* getItemFromInventory(int itemID, Inventory * inv){
+Item* getItemFromInventory(int itemID, Inventory * inv) {
     int i;
     for(i = 0;i < inv->lastSlot;++i){ 
         if(inv->items[i].id == itemID){
@@ -76,7 +76,7 @@ Item* getItemFromInventory(int itemID, Inventory * inv){
     return (Item*)NULL;
 }
 
-int countItemInv(int itemID, int level, Inventory* inv){
+int countItemInv(int itemID, int level, Inventory* inv) {
     int i, count = 0;
     for(i = 0;i < inv->lastSlot;++i){ 
         if(inv->items[i].id == itemID){ 
@@ -88,7 +88,7 @@ int countItemInv(int itemID, int level, Inventory* inv){
     return count;
 }
     
-char* getItemName(int itemID, int countLevel){
+char* getItemName(int itemID, int countLevel) {
     switch(itemID){
         case TOOL_SHOVEL:
             switch(countLevel){
@@ -204,7 +204,7 @@ char* getItemName(int itemID, int countLevel){
     }
 }
     
-char* getBasicItemName(int itemID, int countLevel){
+char* getBasicItemName(int itemID, int countLevel) {
     switch(itemID){
         case TOOL_SHOVEL:
             switch(countLevel){

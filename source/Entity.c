@@ -1,23 +1,6 @@
 #include "Entity.h"
 
-#define PI 3.141592654
-double gaussrand()
-{
-	static double U, V;
-	static int phase = 0;
-	double Z;
-
-	if(phase == 0) {
-		U = (rand() + 1.) / (RAND_MAX + 2.);
-		V = rand() / (RAND_MAX + 1.);
-		Z = sqrt(-2 * log(U)) * sin(2 * PI * V);
-	} else
-		Z = sqrt(-2 * log(U)) * cos(2 * PI * V);
-
-	phase = 1 - phase;
-
-	return Z;
-}
+#include "Synchronizer.h"
 
 Entity newItemEntity(Item item, int x, int y, int level){
     Entity e;
@@ -34,8 +17,8 @@ Entity newItemEntity(Item item, int x, int y, int level){
 	e.entityItem.xx = x;
 	e.entityItem.yy = y;
 	e.entityItem.zz = 2;
-	e.entityItem.xa = gaussrand() * 0.1;
-	e.entityItem.ya = gaussrand() * 0.1;
+	e.entityItem.xa = gaussrand(false) * 0.1;
+	e.entityItem.ya = gaussrand(false) * 0.1;
 	e.entityItem.za = ((float)rand() / RAND_MAX) * 0.45 + 1;
     
     return e;
@@ -296,8 +279,8 @@ Entity newTextParticleEntity(char * str, u32 color, int x, int y, int level){
 	e.textParticle.xx = x;
 	e.textParticle.yy = y;
 	e.textParticle.zz = 2;
-	e.textParticle.xa = gaussrand() * 0.3;
-	e.textParticle.ya = gaussrand() * 0.2;
+	e.textParticle.xa = gaussrand(false) * 0.3;
+	e.textParticle.ya = gaussrand(false) * 0.2;
 	e.textParticle.za = ((float)rand() / RAND_MAX) * 0.7 + 2;
     
     return e;
@@ -310,7 +293,7 @@ Entity newSmashParticleEntity(int x, int y, int level){
     e.x = x;
     e.y = y;
     e.canPass = true;
-    playSound(snd_monsterHurt);
+	playSoundPositioned(snd_monsterHurt, e.level, e.x, e.y); //TODO: This is a wierd location for the effect
     return e;
 }
 

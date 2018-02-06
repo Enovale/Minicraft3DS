@@ -1,5 +1,7 @@
 #include "Render.h"
 
+extern u32 syncTickCount;
+
 void render(s32 xp, s32 yp, u32 xTile, u32 yTile, u8 bits) {
 	xp -= offsetX;
 	yp -= offsetY;
@@ -158,10 +160,18 @@ void render32(s32 xp, s32 yp, u32 xTile, u32 yTile, u8 bits) {
 			scaleX, scaleY);
 }
 
+int playerScale = 2;
+void renderp(s32 xp, s32 yp, u32 xTile, u32 yTile) {
+	xp -= offsetX;
+	yp -= offsetY;
+	int scaleX = playerScale, scaleY = playerScale;
+	sf2d_draw_texture_part_scale(playerSprites, xp << 1, yp << 1, xTile, yTile, 16, 16, 
+            scaleX, scaleY);
+}
+
 void renderTitle(int x, int y) {
-	sf2d_draw_texture_part_scale(icons, (x - 26) << 1, y << 1, 0, 240, 104, 16,
-			2.0, 2.0); // MINICRAFT
-	sf2d_draw_texture_part(icons, x + 48, y + 52, 104, 240, 152, 16); // 3DS HOMEBREW EDITION
+	sf2d_draw_texture_part_scale(icons, (x - 26) << 1, y << 1, 0, 240, 104, 16, 2.0, 2.0); // MINICRAFT
+	sf2d_draw_texture_part(icons, x + 48, y + 44, 104, 240, 152, 16); // 3DS HOMEBREW EDITION
 }
 
 void renderButtonIcon(u32 keyIcon, int x, int y, float scale) {
@@ -294,24 +304,23 @@ void freeLightBakes() {
 	sf2d_free_texture(glowwormBigLightBake);
 }
 
-void renderLightsToStencil(bool force, bool invert, bool rplayer) {
-	if (force || (currentLevel > 1 && currentLevel != 5)) {
+void renderLightsToStencil(PlayerData *pd, bool force, bool invert, bool rplayer) {
+	if (force || (pd->entity.level > 1 && pd->entity.level != 5)) {
 		C3D_DepthTest(true, GPU_NEVER, 0);
 		C3D_StencilTest(true, GPU_NEVER, 1, 0xFF, 0xFF);
 		C3D_StencilOp(GPU_STENCIL_REPLACE, GPU_STENCIL_KEEP, GPU_STENCIL_KEEP);
 		C3D_AlphaTest(true, GPU_GREATER, 0);
-		
 
-        if(player.p.activeItem->id == ITEM_LANTERN) renderLight(player.x, player.y, lanternLightBake);
-        else if(rplayer) renderLight(player.x, player.y, playerLightBake);
+        if(pd->activeItem->id == ITEM_LANTERN) renderLight(pd->entity.x, pd->entity.y, lanternLightBake);
+        else if(rplayer) renderLight(pd->entity.x, pd->entity.y, playerLightBake);
         
 		int i;
-		for (i = 0; i < eManager.lastSlot[currentLevel]; ++i) {
-			Entity e = eManager.entities[currentLevel][i];
+		for (i = 0; i < eManager.lastSlot[pd->entity.level]; ++i) {
+			Entity e = eManager.entities[pd->entity.level][i];
 			if (e.type == ENTITY_FURNITURE) {
-				if (e.entityFurniture.itemID == ITEM_LANTERN && e.x > player.x - 160 && e.y > player.y - 125 && e.x < player.x + 160 && e.y < player.y + 125)
+				if (e.entityFurniture.itemID == ITEM_LANTERN && e.x > pd->entity.x - 160 && e.y > pd->entity.y - 125 && e.x < pd->entity.x + 160 && e.y < pd->entity.y + 125)
 					renderLight(e.x, e.y, lanternLightBake);
-			} else if(e.type == ENTITY_GLOWWORM && e.x > player.x - 160 && e.y > player.y - 125 && e.x < player.x + 160 && e.y < player.y + 125) { //TODO could be made smaller becuase of smaller light radius
+			} else if(e.type == ENTITY_GLOWWORM && e.x > pd->entity.x - 160 && e.y > pd->entity.y - 125 && e.x < pd->entity.x + 160 && e.y < pd->entity.y + 125) { //TODO could be made smaller becuase of smaller light radius
 				if(rand()%10==0) continue;
 				else if(rand()%100==0) renderLight(e.x+20, e.y-20, glowwormBigLightBake);
 				else renderLight(e.x+8, e.y-8, glowwormLightBake);
@@ -325,9 +334,9 @@ void renderLightsToStencil(bool force, bool invert, bool rplayer) {
 		//TODO: Even this is not performant enough for old 3DS, when there is a lot of lava on screen
 		for (x = xo-2; x <= 13 + xo+2; ++x) {
 			for (y = yo-2; y <= 8 + yo+2; ++y) {
-			    if(getTile(x, y) == TILE_LAVA) {
+			    if(getTile(pd->entity.level, x, y) == TILE_LAVA) {
 					//experimental "speedhack"
-					if(getTile(x+1,y)==TILE_LAVA && getTile(x-1,y)==TILE_LAVA && getTile(x,y+1)==TILE_LAVA && getTile(x,y-1)==TILE_LAVA) {
+					if(getTile(pd->entity.level, x+1,y)==TILE_LAVA && getTile(pd->entity.level, x-1,y)==TILE_LAVA && getTile(pd->entity.level, x,y+1)==TILE_LAVA && getTile(pd->entity.level, x,y-1)==TILE_LAVA) {
 						if((x+y)%2 == 0) continue;
 					}
 					renderLight((x << 4) + 8, (y << 4) + 8, playerLightBake);
@@ -348,10 +357,8 @@ void renderLightsToStencil(bool force, bool invert, bool rplayer) {
 }
 
 void resetStencilStuff() {
-	//if (currentLevel > 1) {
-		C3D_StencilTest(false, GPU_ALWAYS, 0x00, 0xFF, 0x00);
-		C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_KEEP);
-	//}
+	C3D_StencilTest(false, GPU_ALWAYS, 0x00, 0xFF, 0x00);
+	C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_KEEP);
 }
 
 void renderLight(int x, int y, sf2d_texture* texture) {
@@ -433,60 +440,60 @@ void resetSurrTiles() {
 	tdr = false;
 }
 
-void checkSurrTiles8(int xt, int yt, int id) {
-	if (getTile(xt, yt - 1) == id)
+void checkSurrTiles8(u8 level, int xt, int yt, int id) {
+	if (getTile(level, xt, yt - 1) == id)
 		tu = true;
-	if (getTile(xt - 1, yt) == id)
+	if (getTile(level, xt - 1, yt) == id)
 		tl = true;
-	if (getTile(xt + 1, yt) == id)
+	if (getTile(level, xt + 1, yt) == id)
 		tr = true;
-	if (getTile(xt, yt + 1) == id)
+	if (getTile(level, xt, yt + 1) == id)
 		td = true;
-	if (getTile(xt - 1, yt - 1) == id)
+	if (getTile(level, xt - 1, yt - 1) == id)
 		tul = true;
-	if (getTile(xt + 1, yt - 1) == id)
+	if (getTile(level, xt + 1, yt - 1) == id)
 		tur = true;
-	if (getTile(xt - 1, yt + 1) == id)
+	if (getTile(level, xt - 1, yt + 1) == id)
 		tdl = true;
-	if (getTile(xt + 1, yt + 1) == id)
+	if (getTile(level, xt + 1, yt + 1) == id)
 		tdr = true;
 }
-void checkSurrTiles4(int xt, int yt, int id) {
-	if (getTile(xt, yt - 1) == id)
+void checkSurrTiles4(u8 level, int xt, int yt, int id) {
+	if (getTile(level, xt, yt - 1) == id)
 		tu = true;
-	if (getTile(xt - 1, yt) == id)
+	if (getTile(level, xt - 1, yt) == id)
 		tl = true;
-	if (getTile(xt + 1, yt) == id)
+	if (getTile(level, xt + 1, yt) == id)
 		tr = true;
-	if (getTile(xt, yt + 1) == id)
+	if (getTile(level, xt, yt + 1) == id)
 		td = true;
 }
 
 u8 tData = 0;
-void renderTile(int i, int d, int x, int y) {
+void renderTile(int i, int d, u8 level, int x, int y) {
 	int age = 0;
 	switch (i) {
 	case TILE_GRASS:
-		checkSurrTiles4(x >> 4, y >> 4, TILE_GRASS);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_TREE);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_FLOWER);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_SAPLING_TREE);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_GRASS);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_TREE);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_FLOWER);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_SAPLING_TREE);
 		
-        if(currentLevel==1 && season==3) renderConnectedTile4(x, y, 256, 112);
-        else if(currentLevel==1 && season==2) renderConnectedTile4(x, y, 256, 128);
+        if(level==1 && worldData.season==3) renderConnectedTile4(x, y, 256, 112);
+        else if(level==1 && worldData.season==2) renderConnectedTile4(x, y, 256, 128);
 		else renderConnectedTile4(x, y, 256, 0);
 		break;
 	case TILE_TREE:
-		renderTile(TILE_GRASS, 0, x, y);
+		renderTile(TILE_GRASS, 0, level, x, y);
 		
-		checkSurrTiles8(x >> 4, y >> 4, TILE_TREE);
+		checkSurrTiles8(level, x >> 4, y >> 4, TILE_TREE);
 		
-        if(season==2) {
+        if(worldData.season==2) {
             render(x,   y,   352+((tu && tl && tul) ? 16 : 0), 96, 0);
             render(x+8, y,   360+((tu && tr && tur) ? 16 : 0), 96, 0);
             render(x,   y+8, 352+((td && tl && tdl) ? 16 : 0), 104, 0);
             render(x+8, y+8, 360+((td && tr && tdr) ? 16 : 0), 104, 0);
-        } else if(season==3) {
+        } else if(worldData.season==3) {
             render(x,   y,   352+((tu && tl && tul) ? 16 : 0), 112, 0);
             render(x+8, y,   360+((tu && tr && tur) ? 16 : 0), 112, 0);
             render(x,   y+8, 352+((td && tl && tdl) ? 16 : 0), 120, 0);
@@ -500,28 +507,28 @@ void renderTile(int i, int d, int x, int y) {
 		
 		break;
 	case TILE_ROCK:
-		checkSurrTiles8(x >> 4, y >> 4, TILE_ROCK);
-        if(currentLevel>1)
+		checkSurrTiles8(level, x >> 4, y >> 4, TILE_ROCK);
+        if(level>1)
             renderConnectedTile8(x, y, 256, 96);
         else
             renderConnectedTile8(x, y, 336, 64);
 		break;
 	case TILE_HARDROCK:
-		checkSurrTiles8(x >> 4, y >> 4, TILE_HARDROCK);
+		checkSurrTiles8(level, x >> 4, y >> 4, TILE_HARDROCK);
 		renderConnectedTile8(x, y, 416, 64);
 		break;
 	case TILE_DIRT: // render dots.
-		if (currentLevel > 1)
+		if (level > 1)
 			render16(x, y, 320, 80, 0);
 		else
 			render16(x, y, 336, 80, 0);
 		break;
 	case TILE_SAND:
-		checkSurrTiles4(x >> 4, y >> 4, TILE_SAND);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_CACTUS);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_SAPLING_CACTUS);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_SAND);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_CACTUS);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_SAPLING_CACTUS);
 		
-		if(currentLevel==1 && season==3) {
+		if(level==1 && worldData.season==3) {
             renderConnectedTile4(x, y, 256, 112);
 		} else {
             renderConnectedTile4(x, y, 320, 0);
@@ -532,43 +539,43 @@ void renderTile(int i, int d, int x, int y) {
         }
 		break;
 	case TILE_WATER:
-		checkSurrTiles4(x >> 4, y >> 4, TILE_WATER);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_HOLE);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_ICE);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_WATER);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_HOLE);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_ICE);
 		
 		renderConnectedTile4(x, y, 384, 0);
 		
-		srand((tickCount + (x / 2 - y) * 4311) / 10);
+		srand((syncTickCount + (x / 2 - y) * 4311) / 10);
 		renderDots(x, y, rand() & 3, rand() & 3, rand() & 3, rand() & 3, 288, 64);
 		break;
 	case TILE_LAVA:
-		checkSurrTiles4(x >> 4, y >> 4, TILE_LAVA);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_HOLE);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_LAVA);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_HOLE);
 		
 		renderConnectedTile4(x, y, 448, 0);
 		
-		srand((tickCount + (x / 2 - y) * 4311) / 10);
+		srand((syncTickCount + (x / 2 - y) * 4311) / 10);
 		renderDots(x, y, rand() & 3, rand() & 3, rand() & 3, rand() & 3, 304, 64);
 		break;
 	case TILE_HOLE:
-		checkSurrTiles4(x >> 4, y >> 4, TILE_HOLE);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_WATER);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_LAVA);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_HOLE);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_WATER);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_LAVA);
 		
 		renderConnectedTile4(x, y, 256, 16);
 		break;
 	case TILE_CACTUS:
-		renderTile(TILE_SAND, 0, x, y);
+		renderTile(TILE_SAND, 0, level, x, y);
 		render16(x, y, 304, 48, 0);
 		break;
 	case TILE_FLOWER:
-		renderTile(TILE_GRASS, 0, x, y);
-		if(currentLevel==1 && season==3) render16(x, y, 320, 112, getData(x >> 4, y >> 4));
-        else render16(x, y, 320, 48, getData(x >> 4, y >> 4));
+		renderTile(TILE_GRASS, 0, level, x, y);
+		if(level==1 && worldData.season==3) render16(x, y, 320, 112, d);
+        else render16(x, y, 320, 48, d);
 		break;
 	case TILE_STAIRS_DOWN:
-		if (currentLevel == 0)
-			renderTile(TILE_CLOUD, 0, x, y);
+		if (level == 0)
+			renderTile(TILE_CLOUD, 0, level, x, y);
 		render16(x, y, 256, 64, 0);
 		break;
 	case TILE_STAIRS_UP:
@@ -584,60 +591,60 @@ void renderTile(int i, int d, int x, int y) {
 		render16(x, y, 496, 48, 0);
 		break;
 	case TILE_CLOUD:
-		checkSurrTiles4(x >> 4, y >> 4, TILE_CLOUD);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_STAIRS_DOWN);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_CLOUDCACTUS);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_CLOUD);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_STAIRS_DOWN);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_CLOUDCACTUS);
 		
 		renderConnectedTile4(x, y, 320, 16);
 		break;
 	case TILE_CLOUDCACTUS:
-		renderTile(TILE_CLOUD, 0, x, y);
+		renderTile(TILE_CLOUD, 0, level, x, y);
 		render16(x, y, 496, 64, 0);
 		break;
 	case TILE_SAPLING_TREE:
-		renderTile(TILE_GRASS, 0, x, y);
+		renderTile(TILE_GRASS, 0, level, x, y);
 		render16(x, y, 288, 48, 0);
 		break;
 	case TILE_SAPLING_CACTUS:
-		renderTile(TILE_SAND, 0, x, y);
+		renderTile(TILE_SAND, 0, level, x, y);
 		render16(x, y, 288, 48, 0);
 		break;
 	case TILE_FARM:
 		render16(x, y, 352, 48, 0);
 		break;
 	case TILE_WHEAT:
-		age = getData(x >> 4, y >> 4) / 20;
+		age = d / 20;
 		if (age > 5)
 			age = 5;
 		render16(x, y, 368 + (age << 4), 48, 0);
 		break;
 	case TILE_WOOD_WALL:
-		checkSurrTiles4(x >> 4, y >> 4, TILE_WOOD_WALL);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_WOOD_WALL);
 		
 		renderConnectedTile4(x, y, 384, 16);
 		break;
 	case TILE_STONE_WALL:
-		checkSurrTiles4(x >> 4, y >> 4, TILE_STONE_WALL);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_STONE_WALL);
 		
 		renderConnectedTile4(x, y, 256, 80);
 		break;
 	case TILE_IRON_WALL:
-		checkSurrTiles4(x >> 4, y >> 4, TILE_IRON_WALL);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_IRON_WALL);
 		
 		renderConnectedTile4(x, y, 448, 16);
 		break;
 	case TILE_GOLD_WALL:
-		checkSurrTiles4(x >> 4, y >> 4, TILE_GOLD_WALL);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_GOLD_WALL);
 		
 		renderConnectedTile4(x, y, 256, 32);
 		break;
 	case TILE_GEM_WALL:
-		checkSurrTiles4(x >> 4, y >> 4, TILE_GEM_WALL);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_GEM_WALL);
 		
 		renderConnectedTile4(x, y, 320, 32);
 		break;
 	case TILE_DUNGEON_WALL:
-		checkSurrTiles8(x >> 4, y >> 4, TILE_DUNGEON_WALL);
+		checkSurrTiles8(level, x >> 4, y >> 4, TILE_DUNGEON_WALL);
 		
 		renderConnectedTile8(x, y, 384, 32);
 		break;
@@ -645,21 +652,22 @@ void renderTile(int i, int d, int x, int y) {
 		render16(x, y, 464 + d*16, 32, 0);
 		break;
 	case TILE_DUNGEON_ENTRANCE:
-		render16(x, y, 352 + (currentLevel==5 ? 16 : 0), 80, 0);
+		render16(x, y, 352 + (level==5 ? 16 : 0), 80, 0);
 		break;
 	case TILE_MAGIC_BARRIER:
-		renderTile(TILE_DUNGEON_FLOOR, 0, x, y);
-		render16(x, y, 320, 64, getData(x >> 4, y >> 4));
+		renderTile(TILE_DUNGEON_FLOOR, 0, level, x, y);
+		render16(x, y, 320, 64, d);
 		
 		//draw remaining pillar count
-		if((player.x - (x+8))*(player.x - (x+8)) + (player.y - (y+8))*(player.y - (y+8)) <= 24*24) {
+        PlayerData *lp = getLocalPlayer();
+		if((lp->entity.x - (x+8))*(lp->entity.x - (x+8)) + (lp->entity.y - (y+8))*(lp->entity.y - (y+8)) <= 24*24) {
 			x -= offsetX;
 			y -= offsetY;
 		
 			int data = 0;
 			int i = 0;
-			for (i = 0; i < eManager.lastSlot[currentLevel]; ++i) {
-				Entity * e = &eManager.entities[currentLevel][i];
+			for (i = 0; i < eManager.lastSlot[level]; ++i) {
+				Entity * e = &eManager.entities[level][i];
 			
 				if(e->type == ENTITY_MAGIC_PILLAR) {
 					++data;
@@ -667,7 +675,7 @@ void renderTile(int i, int d, int x, int y) {
 			}
 			
 			char currentCount[3];
-			sprintf(currentCount,"%d", data);
+			sprintf(currentCount, "%d", data);
 			
 			drawSizedTextColor(currentCount, x+4 + 1, y+4 + 1, 2, dungeonColor[1]);
 			drawSizedTextColor(currentCount, x+4, y+4, 2, dungeonColor[0]);
@@ -675,7 +683,7 @@ void renderTile(int i, int d, int x, int y) {
 		
 		break;
     case TILE_BOOKSHELVES:
-		checkSurrTiles4(x >> 4, y >> 4, TILE_BOOKSHELVES);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_BOOKSHELVES);
 		
 		renderConnectedTile4(x, y, 384, 80 + d*16);
 		break;
@@ -683,26 +691,26 @@ void renderTile(int i, int d, int x, int y) {
         render16(x, y, 336, 96, 0);
         break;
     case TILE_MYCELIUM:
-		checkSurrTiles4(x >> 4, y >> 4, TILE_MYCELIUM);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_MUSHROOM_BROWN);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_MUSHROOM_RED);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_MYCELIUM);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_MUSHROOM_BROWN);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_MUSHROOM_RED);
 		
-		if(currentLevel==1 && season==3) renderConnectedTile4(x, y, 256, 112);
+		if(level==1 && worldData.season==3) renderConnectedTile4(x, y, 256, 112);
 		else renderConnectedTile4(x, y, 448, 80);
 		break;
     case TILE_MUSHROOM_BROWN:
-        renderTile(TILE_MYCELIUM, 0, x, y);
+        renderTile(TILE_MYCELIUM, 0, level, x, y);
 		render16(x, y, 448 + (d&0x1)*16, 96, 0);
         break;
     case TILE_MUSHROOM_RED:
-        renderTile(TILE_MYCELIUM, 0, x, y);
+        renderTile(TILE_MYCELIUM, 0, level, x, y);
 		render16(x, y, 480 + (d&0x1)*16, 96, 0);
         break;
     case TILE_ICE:
-		renderTile(TILE_WATER, 0, x, y);
+		renderTile(TILE_WATER, 0, level, x, y);
 		//checkSurrTiles4(x >> 4, y >> 4, TILE_WATER);
 		//checkSurrTiles4(x >> 4, y >> 4, TILE_HOLE);
-		checkSurrTiles4(x >> 4, y >> 4, TILE_ICE);
+		checkSurrTiles4(level, x >> 4, y >> 4, TILE_ICE);
 		
 		renderConnectedTile4(x, y, 448, 112);
 		break;
@@ -747,70 +755,78 @@ void renderConnectedTile8(int x, int y, u32 xTile, u32 yTile) {
 	render(x+8, y+8, xTile+8+r+d+((tr && td && tdr) ? 16 : 0), yTile+8, 0);
 }
 
-void renderZoomedMap() {
+void renderZoomedMap(PlayerData *pd) {
 	sf2d_draw_rectangle(0, 0, 320, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
 	
-    int mx = mScrollX;
-    int my = mScrollY;
-    if(zoomLevel == 2) mx = 32;
-	sf2d_draw_texture_scale(minimap[currentLevel], mx, my, zoomLevel, zoomLevel); // zoomed map
+    int mx = pd->mapScrollX;
+    int my = pd->mapScrollY;
+    if(pd->mapZoomLevel == 2) mx = 32;
+	sf2d_draw_texture_scale(minimap[pd->entity.level], mx, my, pd->mapZoomLevel, pd->mapZoomLevel); // zoomed map
+    
 	// Airwizard on zoomed map
-	if(currentLevel == 0){
+	if(pd->entity.level == 0){
 		if(awX != 0 && awY != 0){
 			render16c(
-			(mx+((awX/16)*zoomLevel)-16)/2, 
-			(my+((awY/16)*zoomLevel)-16)/2, 
+			(mx+((awX/16)*pd->mapZoomLevel)-16)/2, 
+			(my+((awY/16)*pd->mapZoomLevel)-16)/2, 
 			160, 112, 
-			((player.p.walkDist >> 6) & 1) == 0 ? 0 : 1, 
+			((pd->entity.p.walkDist >> 6) & 1) == 0 ? 0 : 1, 
 			2, 2
 			);
 		}
     }
 	// Player on zoomed map
+    //TODO: Maybe also render other players?
     render16c(
-    (mx+((player.x/16)*zoomLevel)-16)/2, 
-    (my+((player.y/16)*zoomLevel)-16)/2, 
+    (mx+((pd->entity.x/16)*pd->mapZoomLevel)-16)/2, 
+    (my+((pd->entity.y/16)*pd->mapZoomLevel)-16)/2, 
     0, 112, 
-    ((player.p.walkDist >> 6) & 1) == 0 ? 0 : 1, 
+    ((pd->entity.p.walkDist >> 6) & 1) == 0 ? 0 : 1, 
     2, 2
     );
 	
-    drawText(mapText,224, 214); // "x2"/"x4"/"x6"
+    drawText(pd->mapText,224, 214); // "x2"/"x4"/"x6"
     render16(142, 2, 72, 208, 0); // Exit button
     renderc(126, 102, 40, 208, 32, 16, 0); // Plus/Minus zoom buttons
-    if(zoomLevel < 3) sf2d_draw_rectangle(258, 210, 26, 20, 0x7F4F4F4F); // gray out minus button
-    else if(zoomLevel > 5) sf2d_draw_rectangle(284, 210, 26, 20, 0x7F4F4F4F); // gray out minus button
+    if(pd->mapZoomLevel < 3) sf2d_draw_rectangle(258, 210, 26, 20, 0x7F4F4F4F); // gray out minus button
+    else if(pd->mapZoomLevel > 5) sf2d_draw_rectangle(284, 210, 26, 20, 0x7F4F4F4F); // gray out minus button
 }
 
 char scoreT[32];
-void renderGui() {
+void renderGui(PlayerData *pd) {
 	int i;
+    //health and stamina
 	for (i = 0; i < 10; ++i) {
-		if (i < player.p.health)
+		if (i < pd->entity.p.health)
 			render(i * 8 + 6, 5, 168, 152, 0);
 		else
 			render(i * 8 + 6, 5, 176, 152, 0);
-		if (i < player.p.stamina)
+		if (i < pd->entity.p.stamina)
 			render(i * 8 + 6, 14, 184, 152, 0);
 		else
 			render(i * 8 + 6, 14, 191, 152, 0);
 	}
-	sf2d_draw_texture(minimap[currentLevel], 10, 102);
-	renderItemWithTextCentered(player.p.activeItem, 320, 66);
-	itoa(player.p.score, scoreT, 10); // integer to base10 string
+    
+    //minimap
+	sf2d_draw_texture(minimap[pd->entity.level], 10, 102);
+    
+    //active item
+	renderItemWithTextCentered(pd->activeItem, 320, 66);
+	itoa(pd->score, scoreT, 10); // integer to base10 string
 	drawText("Score:",214,12);
 	drawText(scoreT,(140-(strlen(scoreT)*12))/2 + 180,29);
-	if(currentLevel == 0){
+	if(pd->entity.level == 0){
 		if(awX != 0 && awY != 0){
 			renderc(1 + (awX/32), 47 + (awY/32), 88, 216, 8, 8, 0); // Mini-AWizard head.
 		}
     }
-	renderc(1 + (player.x/32), 47 + (player.y/32), 88, 208, 8, 8, 0); // Mini-Player head.
+    //TODO: Maybe also render other players?
+	renderc(1 + (pd->entity.x/32), 47 + (pd->entity.y/32), 88, 208, 8, 8, 0); // Mini-Player head.
 	
 	//quick select
 	drawText("Quickselect:",164,118);
 
-	Inventory * inv = player.p.inv;
+	Inventory * inv = &(pd->inventory);
 	Item * item;
 	for (i = 0; i < 8; ++i) {
 		if((inv->lastSlot) > i) {
@@ -823,103 +839,112 @@ void renderGui() {
 	}
 }
 
-void renderPlayer() {
-	if (player.p.isDead)
+void renderPlayer(PlayerData *pd) {
+    if (pd->entity.level!=getLocalPlayer()->entity.level) {
+        return;
+    }
+	if (pd->entity.p.isDead) {
 		return;
-	int xo = player.x - 8;
-	int yo = player.y - 8;
+    }
+	int xo = pd->entity.x - 8;
+	int yo = pd->entity.y - 8;
 
-	if (player.p.attackTimer > 0 && player.p.dir == 1) {
+    //attack animation upwards
+	if (pd->entity.p.attackTimer > 0 && pd->entity.p.dir == 1) {
 		renderc(xo, yo - 4, 16, 160, 16, 8, 0);
-		renderItemIcon(player.p.activeItem->id, player.p.activeItem->countLevel,
-				xo + 4, yo - 4);
+		renderItemIcon(pd->activeItem->id, pd->activeItem->countLevel, xo + 4, yo - 4);
 	}
-	u8 walk = (player.p.walkDist >> 4) & 1;
-	bool swimming = isSwimming();
-	switch (player.p.dir) {
-	case 0: // down
-		if (swimming)
-			renderc(xo, yo + 4, 48,
-					160 + (((player.p.swimTimer >> 4) & 1) << 3), 16, 8, 0);
-		else
-			renderc(xo, yo + 8, 0, 120 + (player.p.isCarrying ? 16 : 0), 16, 8,
-					walk == 0 ? 0 : 1);
-		renderc(xo, yo, 0, 112 + (player.p.isCarrying ? 16 : 0), 16, 8,
-				walk == 0 ? 0 : 1);
-		break;
-	case 1: // up
-		if (swimming)
-			renderc(xo, yo + 4, 48,
-					160 + (((player.p.swimTimer >> 4) & 1) << 3), 16, 8, 0);
-		else
-			renderc(xo, yo + 8, 16, 120 + (player.p.isCarrying ? 16 : 0), 16, 8,
-					walk == 0 ? 0 : 1);
-		renderc(xo, yo, 16, 112 + (player.p.isCarrying ? 16 : 0), 16, 8,
-				walk == 0 ? 0 : 1);
-		break;
-	case 2: // left
-		if (swimming)
-			renderc(xo, yo + 4, 48,
-					160 + (((player.p.swimTimer >> 4) & 1) << 3), 16, 8, 0);
-		else
-			renderc(xo, yo + 8, 32 + (walk << 4),
-					120 + (player.p.isCarrying ? 16 : 0), 16, 8, 1);
-		renderc(xo, yo, 32 + (walk << 4), 112 + (player.p.isCarrying ? 16 : 0),
-				16, 8, 1);
-		break;
-	case 3: // right
-		if (swimming)
-			renderc(xo, yo + 4, 48,
-					160 + (((player.p.swimTimer >> 4) & 1) << 3), 16, 8, 0);
-		else
-			renderc(xo, yo + 8, 32 + (walk << 4),
-					120 + (player.p.isCarrying ? 16 : 0), 16, 8, 0);
-		renderc(xo, yo, 32 + (walk << 4), 112 + (player.p.isCarrying ? 16 : 0),
-				16, 8, 0);
-		break;
+    
+    //find basic indices
+    int aIndexBig = 0;
+    int aIndexSmall = 0;
+    switch(pd->entity.p.dir) {
+    case 0: //down
+        aIndexBig = 0;
+        aIndexSmall = 0;
+        break;
+    case 1: //up
+        aIndexBig = 2;
+        aIndexSmall = 1;
+        break;
+    case 2: //left
+        aIndexBig = 7;
+        aIndexSmall = 3;
+        break;
+    case 3: //right
+        aIndexBig = 4;
+        aIndexSmall = 2;
+        break;
+    }
+    
+    //find index offset based on walk state
+    u8 walkingOffset = (pd->entity.p.walkDist >> 4) % 2;
+    if(pd->entity.p.dir==2 || pd->entity.p.dir==3) {
+        walkingOffset = (pd->entity.p.walkDist >> 4) % 4;
+        if(walkingOffset==2) walkingOffset = 0;
+        if(walkingOffset==3) walkingOffset = 2;
+    }
+    
+    bool swimming = isWater(pd->entity.level, pd->entity.x>>4, pd->entity.y>>4);
+    
+    //render water anim when swimming
+    if (swimming) {
+        renderc(xo, yo + 5, 48, 160 + (((pd->entity.p.swimTimer >> 4) & 1) << 3), 16, 8, 0);
+    }
+    
+    
+    //render the different parts
+    //legs
+    if(!swimming) {
+        renderp(xo, yo, (0+aIndexBig+walkingOffset)*16, pd->sprite.legs*16);
+    }
+    //body
+    renderp(xo, yo, (10+aIndexBig+walkingOffset)*16, pd->sprite.body*16);
+    //arms (normal)
+    if(!(pd->entity.p.isCarrying)) {
+        renderp(xo, yo, (20+aIndexBig+walkingOffset)*16, pd->sprite.arms*16);
+    }
+    //head
+    renderp(xo, yo, (30+aIndexSmall)*16, pd->sprite.head*16);
+    //eyes
+    renderp(xo, yo, (34+aIndexSmall)*16, pd->sprite.eyes*16);
+    //arms (carrying)
+    if(pd->entity.p.isCarrying) {
+        renderp(xo, yo, (38+aIndexSmall)*16, pd->sprite.arms*16);
+    } 
+    
+    
+    //furniture
+	if (pd->entity.p.isCarrying) {
+		renderFurniture(pd->activeItem->id, xo, yo - 12);
 	}
 
-	if (player.p.isCarrying) {
-		renderFurniture(player.p.activeItem->id, xo, yo - 12);
-	}
-
-	if (player.p.attackTimer > 0) {
-		switch (player.p.dir) {
+    //attack animation (other directios)
+	if (pd->entity.p.attackTimer > 0) {
+		switch (pd->entity.p.dir) {
 		case 0:
-			renderc(xo - player.p.ax, yo - player.p.ay + 12, 16, 168, 16, 8, 0);
-			renderItemIcon(player.p.activeItem->id,
-					player.p.activeItem->countLevel, xo + 4, yo + 12);
+			renderc(xo - pd->entity.p.ax, yo - pd->entity.p.ay + 12, 16, 168, 16, 8, 0);
+			renderItemIcon(pd->activeItem->id, pd->activeItem->countLevel, xo + 4, yo + 12);
 			break;
 		case 2:
-			renderc(xo - player.p.ax - 4, yo - player.p.ay, 32, 160, 8, 16, 0);
-			renderItemIcon(player.p.activeItem->id,
-					player.p.activeItem->countLevel, xo - 4, yo + 4);
+			renderc(xo - pd->entity.p.ax - 4, yo - pd->entity.p.ay, 32, 160, 8, 16, 0);
+			renderItemIcon(pd->activeItem->id, pd->activeItem->countLevel, xo - 4, yo + 4);
 			break;
 		case 3:
-			renderc(xo - player.p.ax + 12, yo - player.p.ay, 40, 160, 8, 16, 0);
-			renderItemIcon(player.p.activeItem->id,
-					player.p.activeItem->countLevel, xo + 12, yo + 4);
+			renderc(xo - pd->entity.p.ax + 12, yo - pd->entity.p.ay, 40, 160, 8, 16, 0);
+			renderItemIcon(pd->activeItem->id, pd->activeItem->countLevel, xo + 12, yo + 4);
 			break;
 		}
 	}
 }
 
-void renderMenuBackground(int xScroll, int yScroll) {
-	sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
-	renderLightsToStencil(false, false, true);
-	renderBackground(xScroll, yScroll);
-	resetStencilStuff();
-	
-	renderDayNight();
-}
-
-void renderWeather(int xScroll, int yScroll) {
-    if(currentLevel==1) {
-        if(season==3) {
-            int xp = -128 + ((tickCount>>2) - xScroll*2)%128;
-            int yp = -128 + ((tickCount>>1) - yScroll*2)%128;
-            int xp2 = 0 - ((tickCount>>2) + xScroll*2)%128;
-            int yp2 = -128 + ((tickCount>>1)+64 - yScroll*2)%128;
+void renderWeather(u8 level, int xScroll, int yScroll) {
+    if(level==1) {
+        if(worldData.season==3) {
+            int xp = -128 + ((syncTickCount>>2) - xScroll*2)%128;
+            int yp = -128 + ((syncTickCount>>1) - yScroll*2)%128;
+            int xp2 = 0 - ((syncTickCount>>2) + xScroll*2)%128;
+            int yp2 = -128 + ((syncTickCount>>1)+64 - yScroll*2)%128;
             int xt;
             int yt;
             for(xt=0; xt<4; ++xt) {
@@ -930,11 +955,11 @@ void renderWeather(int xScroll, int yScroll) {
             }
         }
         
-        if(rain) {
+        if(worldData.rain) {
             int xp = -((xScroll*2)%128);
-            int yp = -128 + ((tickCount<<2) - yScroll*2)%128;
+            int yp = -128 + ((syncTickCount<<2) - yScroll*2)%128;
             int xp2 = -((xScroll*2+8)%128);
-            int yp2 = -128 + ((tickCount<<1)+64 - yScroll*2)%128;
+            int yp2 = -128 + ((syncTickCount<<1)+64 - yScroll*2)%128;
             int xt;
             int yt;
             for(xt=0; xt<4; ++xt) {
@@ -947,46 +972,46 @@ void renderWeather(int xScroll, int yScroll) {
     }
 }
 
-void renderDayNight() {
-	if(currentLevel==1 && (daytime<6000 || daytime>18000)) {
+void renderDayNight(PlayerData *pd) {
+	if(pd->entity.level==1 && (worldData.daytime<6000 || worldData.daytime>18000)) {
 		int color1 = 0x000C0C0C;
 		int color2 = 0x00100C0C;
 		int alpha1 = 0x88;
 		int alpha2 = 0xDD;
 		
-		if(daytime>5000 && daytime<6000) {
-			alpha1 = (alpha1 * (1000-(daytime-5000)))/1000;
-			alpha2 = (alpha2 * (1000-(daytime-5000)))/1000;
-		} else if(daytime>18000 && daytime<19000) {
-			alpha1 = (alpha1 * (daytime-18000))/1000;
-			alpha2 = (alpha2 * (daytime-18000))/1000;
+		if(worldData.daytime>5000 && worldData.daytime<6000) {
+			alpha2 = (alpha2 * (1000-(worldData.daytime-5000)))/1000;
+			alpha1 = (alpha1 * (1000-(worldData.daytime-5000)))/1000;
+		} else if(worldData.daytime>18000 && worldData.daytime<19000) {
+			alpha1 = (alpha1 * (worldData.daytime-18000))/1000;
+			alpha2 = (alpha2 * (worldData.daytime-18000))/1000;
 		}
 		
 		color1 = color1 | (alpha1 << 24);
 		color2 = color2 | (alpha2 << 24);
 		
 		sf2d_draw_rectangle(0, 0, 400, 240, color1); //You might think "real" black would be better, but it actually looks better that way
-		renderLightsToStencil(true, true, false);
+		renderLightsToStencil(pd, true, true, false);
 		sf2d_draw_rectangle(0, 0, 400, 240, color2); //You might think "real" black would be better, but it actually looks better that way
 		resetStencilStuff();
 	}
 }
 
-void renderBackground(int xScroll, int yScroll) {
-    if(currentLevel == 0) {
+void renderBackground(s8 level, int xScroll, int yScroll) {
+    if(level == 0) {
 		sf2d_draw_texture_part_scale(minimap[1], (-xScroll / 3) - 256, (-yScroll / 3) - 32, 0, 0, 128, 128, 12.5, 7.5);
 		sf2d_draw_rectangle(0, 0, 400, 240, 0xAFDFDFDF);
-	} else if(currentLevel == 5) {
+	} else if(level == 5) {
 		sf2d_draw_rectangle(0, 0, 400, 240, dungeonColor[1]);
 	} else {
-		sf2d_draw_rectangle(0, 0, 400, 240, dirtColor[currentLevel]); // dirt color
+		sf2d_draw_rectangle(0, 0, 400, 240, dirtColor[level]); // dirt color
 	}
 	int xo = xScroll >> 4;
 	int yo = yScroll >> 4;
 	int x, y;
 	for (x = xo; x <= 13 + xo; ++x) {
 		for (y = yo; y <= 8 + yo; ++y)
-			renderTile(getTile(x, y), getData(x, y), x << 4, y << 4);
+			renderTile(getTile(level, x, y), getData(level, x, y), level, x << 4, y << 4);
 	}
 }
 
@@ -1166,10 +1191,10 @@ void renderEntity(Entity* e, int x, int y) {
 	case ENTITY_AIRWIZARD:
 		e->wizard.spriteAdjust = 0;
 		if (e->wizard.health < 200) {
-			if (tickCount / 4 % 3 < 2)
+			if (syncTickCount / 4 % 3 < 2)
 				e->wizard.spriteAdjust = 16;
 		} else if (e->wizard.health < 1000) {
-			if (tickCount / 5 % 4 < 2)
+			if (syncTickCount / 5 % 4 < 2)
 				e->wizard.spriteAdjust = 16;
 		}
 		switch (e->wizard.dir) {
@@ -1294,10 +1319,10 @@ void renderEntity(Entity* e, int x, int y) {
 	}
 }
 
-void renderEntities(int x, int y, EntityManager* em) {
+void renderEntities(u8 level, int x, int y, EntityManager* em) {
 	int i;
-	for (i = 0; i < em->lastSlot[currentLevel]; ++i) {
-		Entity e = em->entities[currentLevel][i];
+	for (i = 0; i < em->lastSlot[level]; ++i) {
+		Entity e = em->entities[level][i];
 		if (e.x > x - 200 && e.y > y - 125 && e.x < x + 200 && e.y < y + 125)
 			renderEntity(&e, e.x, e.y);
 	}
@@ -1663,8 +1688,8 @@ void renderItemIcon(int itemID, int countLevel, int x, int y) {
 		render(x, y, 64, 168, 0);
 		break;
     case TOOL_MAGIC_COMPASS:
-        xd = compassData[currentLevel][0] - (player.x>>4);
-        yd = compassData[currentLevel][1] - (player.y>>4);
+        xd = worldData.compassData[getLocalPlayer()->entity.level][0] - (getLocalPlayer()->entity.x>>4);
+        yd = worldData.compassData[getLocalPlayer()->entity.level][1] - (getLocalPlayer()->entity.y>>4);
         if(abs(yd)>abs(xd)) {
             if(yd<0) render(x, y, 112, 168, 0);
             else render(x, y, 120, 168, 0);

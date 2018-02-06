@@ -1,5 +1,9 @@
 #include "Sound.h"
 
+u8 soundListenerLevel;
+int soundListenerX;
+int soundListenerY;
+
 void loadSound(Sound * snd, char * filename){
     FILE *file = fopen(filename, "rb");
     if(file != NULL){
@@ -16,8 +20,27 @@ void playSound(Sound snd){
     csndPlaySound(8, SOUND_FORMAT_16BIT | SOUND_ONE_SHOT, 44100, 1, 0, snd.buffer, snd.buffer, snd.size);
 }
 
-void playMusic(Sound snd){
-    csndPlaySound(10, SOUND_FORMAT_16BIT | SOUND_REPEAT, 44100, 1, 0, snd.buffer, snd.buffer, snd.size);
+void playSoundPositioned(Sound snd, s8 level, int x, int y) {
+    if(level != soundListenerLevel) return;
+    int xd = soundListenerX - x;
+    int yd = soundListenerY - y;
+    if (xd * xd + yd * yd > 80 * 80) return;
+    
+    csndPlaySound(8, SOUND_FORMAT_16BIT | SOUND_ONE_SHOT, 44100, 1, 0, snd.buffer, snd.buffer, snd.size);
+}
+
+void setListenerPosition(s8 level, int x, int y) {
+    soundListenerLevel = level;
+    soundListenerX = x;
+    soundListenerY = y;
+}
+
+void playMusic(Sound *snd){
+    static Sound *lastSnd;
+    if(lastSnd==snd) return;
+    lastSnd = snd;
+    
+    csndPlaySound(10, SOUND_FORMAT_16BIT | SOUND_REPEAT, 44100, 1, 0, snd->buffer, snd->buffer, snd->size);
 }
 
 void stopMusic() {
@@ -29,19 +52,19 @@ void stopMusic() {
 void updateMusic(int lvl, int time) {
 	switch(lvl) {
 	case 0:
-		playMusic(music_floor0);
+		playMusic(&music_floor0);
 		break;
 	case 1:
-		if(time>6000 && time<19000) playMusic(music_floor1);
-		else playMusic(music_floor1_night);
+		if(time>6000 && time<19000) playMusic(&music_floor1);
+		else playMusic(&music_floor1_night);
 		break;
 	case 2:
 	case 3:
-		playMusic(music_floor23);
+		playMusic(&music_floor23);
 		break;
 	case 4:
 	case 5: //TODO - dungeon needs own music
-		playMusic(music_floor4);
+		playMusic(&music_floor4);
 		break;
 	}
 }
