@@ -386,7 +386,7 @@ void tickMenu(int menu){
         case MENU_ABOUT:
             if (localInputs.k_decline.clicked) currentMenu = MENU_TITLE;
         break;
-		
+		/*
 		case MENU_ARMOR:
             if (k_delete.clicked || k_decline.clicked){
                  currentMenu = MENU_NONE;
@@ -405,6 +405,7 @@ void tickMenu(int menu){
 		    if (k_up.clicked){ --curInvSel; if(curInvSel < 0)curInvSel=player.p.inv->lastSlot-1;}
 		    if (k_down.clicked){ ++curInvSel; if(curInvSel > player.p.inv->lastSlot-1)curInvSel=0;}
         break;
+		*/
         
         case MENU_LOADGAME:
             if(!enteringName && !areYouSure){ // World select

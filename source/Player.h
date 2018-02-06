@@ -91,6 +91,6 @@ PlayerData* getLocalPlayer();
 
 void tickPlayer(PlayerData *pd, bool inmenu);
 void playerSetActiveItem(PlayerData *pd, Item * item);
-bool playerUseEnergy(PlayerData *pd, int amount);
+bool playerUseEnergy(PlayerData * pd, int amount);
 void playerHeal(PlayerData *pd, int amount);
 void playerSpawn(PlayerData *pd);

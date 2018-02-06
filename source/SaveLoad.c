@@ -245,10 +245,10 @@ void savePlayerInternal(char *filename, PlayerData *player, EntityManager *eMana
     fwrite(&UnderSpeedEffect, sizeof(bool), 1, file);
     fwrite(&regening, sizeof(bool), 1, file);
     fwrite(&UnderSwimBreathEffect, sizeof(bool), 1, file);
-    fwrite(&player->p.strengthTimer, sizeof(int), 1, file);
-    fwrite(&player->p.speedTimer, sizeof(int), 1, file);
-    fwrite(&player->p.swimBreathTimer, sizeof(int), 1, file);
-    fwrite(&player->p.regenTimer, sizeof(int), 1, file);
+    fwrite(&player->entity.p.strengthTimer, sizeof(int), 1, file);
+    fwrite(&player->entity.p.speedTimer, sizeof(int), 1, file);
+    fwrite(&player->entity.p.swimBreathTimer, sizeof(int), 1, file);
+    fwrite(&player->entity.p.regenTimer, sizeof(int), 1, file);
 
     fclose(file);
 }
@@ -542,10 +542,10 @@ void loadPlayerInternal(char *filename, PlayerData *player, EntityManager *eMana
     fread(&UnderSpeedEffect, sizeof(bool), 1, file);
     fread(&regening, sizeof(bool), 1, file);
     fread(&UnderSwimBreathEffect, sizeof(bool), 1, file);
-    fread(&player->p.strengthTimer, sizeof(int), 1, file);
-    fread(&player->p.speedTimer, sizeof(int), 1, file);
-    fread(&player->p.swimBreathTimer, sizeof(int), 1, file);
-    fread(&player->p.regenTimer, sizeof(int), 1, file);
+    fread(&player->entity.p.strengthTimer, sizeof(int), 1, file);
+    fread(&player->entity.p.speedTimer, sizeof(int), 1, file);
+    fread(&player->entity.p.swimBreathTimer, sizeof(int), 1, file);
+    fread(&player->entity.p.regenTimer, sizeof(int), 1, file);
     
     fclose(file);
 }

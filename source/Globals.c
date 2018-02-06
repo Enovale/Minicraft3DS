@@ -1399,65 +1399,6 @@ void addSmashParticles(s8 level, int x, int y, int damage) {
     addEntityToList(newSmashParticleEntity(x, y, level), &eManager);
 }
 
-<<<<<<< HEAD
-void initPlayer(){
-	UnderStrengthEffect = false;
-	UnderSpeedEffect = false;
-	regening = false;
-	UnderSwimBreathEffect = false;
-    player.type = ENTITY_PLAYER;
-    spawnPlayer();
-    player.xr = 4;
-    player.yr = 3;
-    player.canSwim = true;
-    player.p.ax = 0;
-    player.p.ay = 0;
-    player.p.health = 10;
-    player.p.stamina = 10;
-    player.p.score = 0;
-    player.p.walkDist = 0;
-    player.p.attackTimer = 0;
-    player.p.dir = 0;
-    player.p.inv = &eManager.invs[0];
-    eManager.nextInv++;
-    player.p.inv->lastSlot = 0;
-    player.p.activeItem = &noItem;
-    player.p.isDead = false;
-    player.p.hasWon = false;
-    
-    addItemToInventory(newItem(ITEM_WORKBENCH,0), player.p.inv);
-    addItemToInventory(newItem(ITEM_POWGLOVE,0), player.p.inv);	
-    if (shouldRenderDebug == true) {
-	addItemToInventory(newItem(ITEM_GLASS,10), player.p.inv);
-	addItemToInventory(newItem(ITEM_GOLD_APPLE,1), player.p.inv);
-	addItemToInventory(newItem(ITEM_POTION_MAKER,0), player.p.inv);
-	addItemToInventory(newItem(ITEM_STRENGTH_POTION,1), player.p.inv);
-	addItemToInventory(newItem(ITEM_SPEED_POTION,1), player.p.inv);
-	addItemToInventory(newItem(ITEM_REGEN_POTION,1), player.p.inv);
-	addItemToInventory(newItem(ITEM_SWIM_BREATH_POTION,1), player.p.inv);
-    addItemToInventory(newItem(TOOL_SHOVEL,4), player.p.inv);
-    addItemToInventory(newItem(TOOL_HOE,4), player.p.inv);
-    addItemToInventory(newItem(TOOL_SWORD,4), player.p.inv);
-    addItemToInventory(newItem(TOOL_PICKAXE,4), player.p.inv);
-    addItemToInventory(newItem(TOOL_AXE,4), player.p.inv);
-	
-	addItemToInventory(newItem(ITEM_GEM, 60), player.p.inv);
-	addItemToInventory(newItem(ITEM_IRONINGOT, 60), player.p.inv);
-	addItemToInventory(newItem(ITEM_GOLDINGOT, 60), player.p.inv);
-	addItemToInventory(newItem(ITEM_APPLE, 1), player.p.inv);
-    
-    addItemToInventory(newItem(ITEM_ANVIL,0), player.p.inv);
-    addItemToInventory(newItem(ITEM_CHEST,0), player.p.inv);
-    addItemToInventory(newItem(ITEM_OVEN,0), player.p.inv);
-    addItemToInventory(newItem(ITEM_FURNACE,0), player.p.inv);
-    addItemToInventory(newItem(ITEM_LANTERN,0), player.p.inv);  
-	addItemToInventory(newItem(ITEM_ENCHANTER,0), player.p.inv);  
-	}
-}
-
-void playerHurtTile(int tile, int xt, int yt, int damage, int dir){
-    if(shouldRenderDebug) damage = 99;
-=======
 void damageAndBreakTile(s8 level, int xt, int yt, int damage, int maxDamage, int replaceTile, int numItems, ...) {
     int i;
     
@@ -1485,7 +1426,6 @@ void damageAndBreakTile(s8 level, int xt, int yt, int damage, int maxDamage, int
 
 void playerHurtTile(PlayerData *pd, int tile, s8 level, int xt, int yt, int damage, int dir){
     if(TESTGODMODE) damage = 99;
->>>>>>> 75ec2ee88467d5a8583d55d5eb0d1694ba0e2f3d
     
     //TODO: Most of this can be combined a lot
     switch(tile){
@@ -1582,15 +1522,6 @@ void playerHurtTile(PlayerData *pd, int tile, s8 level, int xt, int yt, int dama
     
 }
 
-<<<<<<< HEAD
-bool playerUseEnergy(int amount){
-    if(shouldRenderDebug) return true;
-    if(amount > player.p.stamina) return false;
-    player.p.stamina -= amount;
-    return true;
-}
-=======
->>>>>>> 75ec2ee88467d5a8583d55d5eb0d1694ba0e2f3d
 
 void switchLevel(PlayerData *pd, s8 change){
     pd->entity.level+=change;
@@ -1602,38 +1533,6 @@ void switchLevel(PlayerData *pd, s8 change){
         else sf2d_set_clear_color(0xFF007F00);
 	}
     
-<<<<<<< HEAD
-    if (player.p.activeItem == &noItem || player.p.activeItem->id == TOOL_SWORD || player.p.activeItem->id == TOOL_AXE) {
-			xt = player.x >> 4;
-			yt = (player.y + yo) >> 4;
-			r = 12;
-			if (player.p.dir == 0) yt = (player.y + r + yo) >> 4;
-			if (player.p.dir == 1) yt = (player.y - r + yo) >> 4;
-			if (player.p.dir == 2) xt = (player.x - r) >> 4;
-			if (player.p.dir == 3) xt = (player.x + r) >> 4;
-
-			if (xt >= 0 && yt >= 0 && xt < 128 && 128) {
-				if(UnderStrengthEffect && player.p.strengthTimer <2000) {
-					playerHurtTile(getTile(xt,yt), xt, yt, (rand()%3 + 5) + 1, player.p.dir);
-				} else {
-                playerHurtTile(getTile(xt,yt), xt, yt, (rand()%3) + 1, player.p.dir);
-				}
-			}
-		}
-}
-
-
-void switchLevel(s8 change){
-    currentLevel+=change;
-    if(currentLevel > 4) currentLevel = 0; else if(currentLevel < 0) currentLevel = 4;
-    if(currentLevel == 1) sf2d_set_clear_color(0xFF6C6D82); //sf2d_set_clear_color(RGBA8(0x82, 0x6D, 0x6C, 0xFF));
-    else if(currentLevel > 1) sf2d_set_clear_color(0xFF666666); //sf2d_set_clear_color(RGBA8(0x66, 0x66, 0x66, 0xFF));
-    else sf2d_set_clear_color(0xFF007F00); //sf2d_set_clear_color(RGBA8(0x00, 0x7F, 0x00, 0xFF));
-	
-	updateMusic(currentLevel, daytime);
-	
-=======
->>>>>>> 75ec2ee88467d5a8583d55d5eb0d1694ba0e2f3d
 	//for level 0 background
 	updateLevel1Map();
 }
@@ -1730,55 +1629,6 @@ bool useEntity(PlayerData *pd, Entity* e) {
                 openCraftingMenu(pd, &workbenchRecipes, "Crafting");
                 return true;
             case ITEM_FURNACE:
-<<<<<<< HEAD
-                currentRecipes = &furnaceRecipes;
-                currentCraftTitle = "Smelting";
-                currentMenu = MENU_CRAFTING; 
-                checkCanCraftRecipes(currentRecipes, player.p.inv);
-                sortRecipes(currentRecipes);
-                return true;
-            case ITEM_OVEN:
-                currentRecipes = &ovenRecipes;
-                currentCraftTitle = "Cooking";
-                currentMenu = MENU_CRAFTING; 
-                checkCanCraftRecipes(currentRecipes, player.p.inv);
-                sortRecipes(currentRecipes);
-                return true;
-            case ITEM_ANVIL:
-                currentRecipes = &anvilRecipes;
-                currentCraftTitle = "Forging";
-                currentMenu = MENU_CRAFTING; 
-                checkCanCraftRecipes(currentRecipes, player.p.inv);
-                sortRecipes(currentRecipes);
-                return true;
-            case ITEM_CHEST:
-                curChestEntity = e;
-                curInvSel = 0;
-                curChestEntity->entityFurniture.r = 0;
-                curChestEntity->entityFurniture.oSel = 0;
-                currentMenu = MENU_CONTAINER; 
-                return true;
-			case ITEM_LOOM:
-                currentRecipes = &loomRecipes;
-                currentCraftTitle = "Sewing";
-                currentMenu = MENU_CRAFTING; 
-                checkCanCraftRecipes(currentRecipes, player.p.inv);
-                sortRecipes(currentRecipes);
-                return true;
-			case ITEM_ENCHANTER:
-                currentRecipes = &enchanterRecipes;
-                currentCraftTitle = "Enchanting";
-                currentMenu = MENU_CRAFTING; 
-                checkCanCraftRecipes(currentRecipes, player.p.inv);
-                sortRecipes(currentRecipes);
-                return true;
-			case ITEM_POTION_MAKER:
-                currentRecipes = &potionMakerRecipes;
-                currentCraftTitle = "Brewing";
-                currentMenu = MENU_CRAFTING; 
-                checkCanCraftRecipes(currentRecipes, player.p.inv);
-                sortRecipes(currentRecipes);
-=======
                 openCraftingMenu(pd, &furnaceRecipes, "Smelting");
                 return true;
             case ITEM_OVEN:
@@ -1791,7 +1641,10 @@ bool useEntity(PlayerData *pd, Entity* e) {
                 openCraftingMenu(pd, &loomRecipes, "Crafting");
                 return true;
 			case ITEM_ENCHANTER:
-                openCraftingMenu(pd, &enchanterRecipes, "Crafting");
+                openCraftingMenu(pd, &enchanterRecipes, "Enchanting");
+                return true;
+			case ITEM_POTION_MAKER:
+                openCraftingMenu(pd, &potionMakerRecipes, "Brewing");
                 return true;
             case ITEM_CHEST:
                 pd->curChestEntity = e;
@@ -1799,7 +1652,6 @@ bool useEntity(PlayerData *pd, Entity* e) {
                 pd->ingameMenuInvSelOther = 0;
                 pd->curChestEntityR = 0;
                 pd->ingameMenu = MENU_CONTAINER; 
->>>>>>> 75ec2ee88467d5a8583d55d5eb0d1694ba0e2f3d
                 return true;
         }
     } else if(e->type == ENTITY_NPC) {
@@ -1808,175 +1660,6 @@ bool useEntity(PlayerData *pd, Entity* e) {
     }
     return false;
 }
-
-<<<<<<< HEAD
-bool use(int x0, int y0, int x1, int y1) {
-	Entity * entities[eManager.lastSlot[currentLevel]];
-	int i;
-    int ae = getEntities(entities, x0, y0, x1, y1);
-	for(i = 0; i < ae; ++i){ 
-        if(useEntity(entities[i])) return true;
-    }
-	return false;
-}
-	
-bool playerUse() {
-	int yo = -2;
-	if (player.p.dir == 0 && use(player.x - 8, player.y + 4 + yo, player.x + 8, player.y + 12 + yo)) return true;
-	if (player.p.dir == 1 && use(player.x - 8, player.y - 12 + yo, player.x + 8, player.y - 4 + yo)) return true;
-	if (player.p.dir == 3 && use(player.x + 4, player.y - 8 + yo, player.x + 12, player.y + 8 + yo)) return true;
-	if (player.p.dir == 2 && use(player.x - 12, player.y - 8 + yo, player.x - 4, player.y + 8 + yo)) return true;
-	return false;
-}
-
-void tickPlayer(){
-    if (player.hurtTime > 0) player.hurtTime--;
-    bool swimming = isSwimming();
-    if (player.p.stamina <= 0 && player.p.staminaRechargeDelay == 0 && player.p.staminaRecharge == 0) {
-			player.p.staminaRechargeDelay = 40;
-	}
-
-	if (player.p.staminaRechargeDelay > 0) {
-		--player.p.staminaRechargeDelay;
-	}
-
-	if (player.p.staminaRechargeDelay == 0) {
-		++player.p.staminaRecharge;
-		if (swimming) player.p.staminaRecharge = 0;
-		
-		while (player.p.staminaRecharge > 10) {
-			player.p.staminaRecharge -= 10;
-			if (player.p.stamina < 10) ++player.p.stamina;
-		}
-	}
-    
-	player.p.ax = 0;
-	player.p.ay = 0;
-	
-	if (k_left.down){
-        if (!UnderSpeedEffect) {
-           player.p.ax -= 1;
-           player.p.dir = 2;
-		   ++player.p.walkDist;
-		} else if (UnderSpeedEffect) {
-			player.p.ax -= 2;
-			player.p.dir = 2;
-			player.p.walkDist = player.p.walkDist + 2;
-		}
-    }
-	if (k_right.down){
-		if (!UnderSpeedEffect) {
-           player.p.ax += 1;
-           player.p.dir = 3;
-		   ++player.p.walkDist;
-		} else if (UnderSpeedEffect) {
-			player.p.ax += 2;
-			player.p.dir = 3;
-			player.p.walkDist = player.p.walkDist + 2;
-		}
-    }
-	if (k_up.down){
-        if (!UnderSpeedEffect) {
-           player.p.ay -= 1;
-           player.p.dir = 1;
-		   ++player.p.walkDist;
-		} else if (UnderSpeedEffect) {
-			player.p.ay -= 2;
-			player.p.dir = 1;
-			player.p.walkDist = player.p.walkDist + 2;
-		}
-    }
-	if (k_down.down){
-        if (!UnderSpeedEffect) {
-           player.p.ay += 1;
-           player.p.dir = 0;
-		   ++player.p.walkDist;
-		} else if (UnderSpeedEffect) {
-			player.p.ay += 2;
-			player.p.dir = 0;
-			player.p.walkDist = player.p.walkDist + 2;
-		}
-    }
-    if (player.p.staminaRechargeDelay % 2 == 0) moveMob(&player, player.p.ax, player.p.ay);
-	
-	
-	if (swimming && player.p.swimTimer % 60 == 0 && !UnderSwimBreathEffect) {
-		if (player.p.stamina > 0) {
-			if(!shouldRenderDebug) --player.p.stamina;
-		} else {
-		    hurtEntity(&player,1,-1,0xFFAF00FF);
-		}
-	}
-	
-	if (regening && player.p.regenTimer % 90 == 0) {
-		if(!shouldRenderDebug) healPlayer(1);
-	}
-	
-    if (k_pause.clicked){
-        currentSelection = 0;
-        currentMenu = MENU_PAUSED; 
-    }
-    
-    if(k_attack.clicked){
-        if (player.p.stamina != 0) {
-			if(!shouldRenderDebug) player.p.stamina--;
-			player.p.staminaRecharge = 0;
-            playerAttack();
-            //addEntityToList(newSlimeEntity(1,200,600,1), &eManager);
-		}
-    }
-    
-    if (k_menu.clicked){ 
-		curInvSel = 0;
-        if(!playerUse()) currentMenu = MENU_INVENTORY; 
-    }
-
-    if (k_delete.clicked){ 
-		curInvSel = 0;
-        if(!playerUse()) currentMenu = MENU_ARMOR; 
-    }
-    
-    if(isSwimming()) ++player.p.swimTimer;
-	if(UnderStrengthEffect) ++player.p.strengthTimer;
-	if(player.p.strengthTimer >= 2000) {
-		player.p.strengthTimer = 0;
-		UnderStrengthEffect = false;
-	}
-	if(UnderSpeedEffect) ++player.p.speedTimer;
-	if(player.p.speedTimer >= 2000) {
-		player.p.speedTimer = 0;
-		UnderSpeedEffect = false;
-	}
-	if(regening) ++player.p.regenTimer;
-	if(player.p.regenTimer >= 2000) {
-		player.p.regenTimer = 0;
-		regening = false;
-	}
-	if(UnderSwimBreathEffect) ++player.p.swimBreathTimer;
-	if(player.p.swimBreathTimer >= 2000) {
-		player.p.swimBreathTimer = 0;
-		UnderSwimBreathEffect = false;
-	}
-    if(player.p.attackTimer > 0) {
-		--player.p.attackTimer;
-	}
-	
-	//TODO - maybe move to own function
-	//Update Minimap
-	int xp;
-	int yp;
-	for(xp = (player.x>>4)-5; xp<(player.x>>4)+5; ++xp) {
-		for(yp = (player.y>>4)-5; yp<(player.y>>4)+5; ++yp) {
-			if(xp>=0 && xp<128 && yp>=0 && yp<128) {
-				if(!getMinimapVisible(currentLevel,xp,yp)) {
-					setMinimapVisible(currentLevel,xp,yp,true);
-				}
-			}
-		}
-	}
-}
-=======
->>>>>>> 75ec2ee88467d5a8583d55d5eb0d1694ba0e2f3d
 
 bool isWater(s8 level, int xt, int yt){
     return getTile(level, xt, yt)==TILE_WATER;

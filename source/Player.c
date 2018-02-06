@@ -65,7 +65,9 @@ void playerInitInventory(PlayerData *pd) {
     addItemToInventory(newItem(ITEM_POWGLOVE,0), &(pd->inventory));   
     
     if(TESTGODMODE) {
-        addItemToInventory(newItem(TOOL_SHOVEL,4), &(pd->inventory));
+		addItemToInventory(newItem(ITEM_GOLD_APPLE,1), &(pd->inventory));
+		addItemToInventory(newItem(ITEM_STRENGTH_POTION,1), &(pd->inventory));
+        addItemToInventory(newItem(TOOL_SHOVEL,1), &(pd->inventory));
         addItemToInventory(newItem(TOOL_HOE,4), &(pd->inventory));
         addItemToInventory(newItem(TOOL_SWORD,4), &(pd->inventory));
         addItemToInventory(newItem(TOOL_PICKAXE,4), &(pd->inventory));
@@ -231,33 +233,33 @@ bool playerUseItem(PlayerData *pd) {
             }
             break;
 		case ITEM_STRENGTH_POTION:
-			if(player.p.health < 20 && playerUseEnergy(2) && player.p.strengthTimer == 0){
+			if(pd->entity.p.health < 20 && playerUseEnergy(pd, 2) && pd->entity.p.strengthTimer == 0){
 				potionEffect(1);
 				--item->countLevel;
 			}
             return 0;
 		case ITEM_SPEED_POTION:
-			if(player.p.health < 20 && playerUseEnergy(2) && player.p.strengthTimer == 0){
+			if(pd->entity.p.health < 20 && playerUseEnergy(pd, 2) && pd->entity.p.speedTimer == 0){
 				potionEffect(2);
 				--item->countLevel;
 			}
             return 0;
 		case ITEM_REGEN_POTION:
-			if(player.p.health < 20 && playerUseEnergy(2) && player.p.strengthTimer == 0){
+			if(pd->entity.p.health < 20 && playerUseEnergy(pd, 2) && pd->entity.p.regenTimer == 0){
 				potionEffect(3);
 				--item->countLevel;
 			}
             return 0;
 		case ITEM_SWIM_BREATH_POTION:
-			if(player.p.health < 20 && playerUseEnergy(2) && player.p.strengthTimer == 0){
+			if(pd->entity.p.health < 20 && playerUseEnergy(pd, 2) && pd->entity.p.swimBreathTimer == 0){
 				potionEffect(4);
 				--item->countLevel;
 			}
             return 0;
 		case ITEM_GOLD_APPLE:
-            if(player.p.health < 10 && playerUseEnergy(1)){
-                healPlayer(8); 
-				playerUseEnergy(-10);
+            if(pd->entity.p.health < 10 && playerUseEnergy(pd, 1)){
+                playerHeal(pd, 8); 
+				playerUseEnergy(pd, -10);
                 --item->countLevel;
             }
             return 0;

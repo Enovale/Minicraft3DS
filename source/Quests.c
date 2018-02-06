@@ -349,22 +349,13 @@ void tickNPCMenu(PlayerData *pd) {
                         if(item->countLevel < 1) removeItemFromInventory(item->slotNum, &(pd->inventory));
                         
                         questManager->questlines[1].currentQuest = 2;
-                        
-<<<<<<< HEAD
-                        currentTalk0 = "Thank you these will be";
-                        currentTalk1 = "really helpful.";
-                        currentTalk2 = "Here take this book with";
-                        currentTalk3 = "it you should be able to";
-                        currentTalk4 = "easily understand anything";
-                        currentTalk5 = "a dwarf can say.";
-=======
+                       
                         data->currentTalk0 = "Thank you these will be";
                         data->currentTalk1 = "really helpfull.";
                         data->currentTalk2 = "Here take this book with";
                         data->currentTalk3 = "it you should be able to";
                         data->currentTalk4 = "easily understand anything";
                         data->currentTalk5 = "a dwarf can say.";
->>>>>>> 75ec2ee88467d5a8583d55d5eb0d1694ba0e2f3d
                         
                         data->currentTalkOption0 = "Thanks";
                     } else {
@@ -428,11 +419,7 @@ void renderNPCMenu(NPC_MenuData *data) {
     //TODO: Handle upon currentNPC as well as the fitting quest progress
     switch(data->currentNPC) {
     case NPC_GIRL:
-<<<<<<< HEAD
-        if(currentNPCMenu==NPC_MENU_TALK) renderTalkMenu("Girl Jill");
-=======
         if(data->currentNPCMenu==NPC_MENU_TALK) renderTalkMenu(data, "Maria");
->>>>>>> 75ec2ee88467d5a8583d55d5eb0d1694ba0e2f3d
     break;
     case NPC_PRIEST:
         if(data->currentNPCMenu==NPC_MENU_TALK) renderTalkMenu(data, "Priest Brom");
