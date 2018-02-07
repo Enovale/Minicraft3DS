@@ -161,7 +161,7 @@ void ingameMenuTick(PlayerData *pd, int menu) {
 						}
 						
 						enterDungeon(pd);
-					} else if(TESTGODMODE) {
+					} else if(shouldRenderDebug) {
                         enterDungeon(pd);
                     }
 				} else {

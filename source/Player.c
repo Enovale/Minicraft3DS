@@ -64,7 +64,7 @@ void playerInitInventory(PlayerData *pd) {
     addItemToInventory(newItem(ITEM_WORKBENCH,0), &(pd->inventory));
     addItemToInventory(newItem(ITEM_POWGLOVE,0), &(pd->inventory));   
     
-    if(TESTGODMODE) {
+    if(shouldRenderDebug) {
 		addItemToInventory(newItem(ITEM_GOLD_APPLE,1), &(pd->inventory));
 		addItemToInventory(newItem(ITEM_STRENGTH_POTION,1), &(pd->inventory));
 		addItemToInventory(newItem(ITEM_REGEN_POTION,1), &(pd->inventory));
@@ -471,7 +471,7 @@ void tickPlayer(PlayerData *pd, bool inmenu) {
         //attacking
         if(pd->inputs.k_attack.clicked){
             if (pd->entity.p.stamina != 0) {
-                if(!TESTGODMODE) pd->entity.p.stamina--;
+                if(!shouldRenderDebug) pd->entity.p.stamina--;
                 pd->entity.p.staminaRecharge = 0;
                 
                 playerAttack(pd);
@@ -487,7 +487,7 @@ void tickPlayer(PlayerData *pd, bool inmenu) {
     //swimming stamina and drowning
 	if (swimming && pd->entity.p.swimTimer % 60 == 0) {
 		if (pd->entity.p.stamina > 0) {
-			if(!TESTGODMODE) --pd->entity.p.stamina;
+			if(!shouldRenderDebug) --pd->entity.p.stamina;
 		} else {
 		    hurtEntity(&(pd->entity), 1, -1, 0xFFAF00FF, NULL);
 		}
@@ -518,7 +518,7 @@ void playerSetActiveItem(PlayerData *pd, Item *item) {
 }
 
 bool playerUseEnergy(PlayerData *pd, int amount) {
-    if(TESTGODMODE) return true;
+    if(shouldRenderDebug) return true;
     if(amount > pd->entity.p.stamina) return false;
     pd->entity.p.stamina -= amount;
     return true;

@@ -123,7 +123,7 @@ bool moveMob(Entity* e, int xa, int ya){
 }
 
 void hurtEntity(Entity *e, int damage, int dir, u32 hurtColor, Entity *damager){
-    if (TESTGODMODE && e->type==ENTITY_PLAYER) return;
+    if (shouldRenderDebug && e->type==ENTITY_PLAYER) return;
     if (e->hurtTime > 0) return;
 	playSoundPositioned(snd_monsterHurt, e->level, e->x, e->y);
 
@@ -1425,7 +1425,7 @@ void damageAndBreakTile(s8 level, int xt, int yt, int damage, int maxDamage, int
 }
 
 void playerHurtTile(PlayerData *pd, int tile, s8 level, int xt, int yt, int damage, int dir){
-    if(TESTGODMODE) damage = 99;
+    if(shouldRenderDebug) damage = 99;
 	if(UnderStrengthEffect) damage = damage + 4;
     
     //TODO: Most of this can be combined a lot
@@ -1441,7 +1441,7 @@ void playerHurtTile(PlayerData *pd, int tile, s8 level, int xt, int yt, int dama
             damageAndBreakTile(level, xt, yt, damage, 50, TILE_DIRT, 2, newItem(ITEM_STONE,1), rand()%4+1, newItem(ITEM_COAL,1), rand()%2);
         break;
         case TILE_HARDROCK:
-            if((pd->activeItem->id != TOOL_PICKAXE || pd->activeItem->countLevel < 4) && !TESTGODMODE) damage = 0;
+            if((pd->activeItem->id != TOOL_PICKAXE || pd->activeItem->countLevel < 4) && !shouldRenderDebug) damage = 0;
             damageAndBreakTile(level, xt, yt, damage, 200, TILE_DIRT, 2, newItem(ITEM_STONE,1), rand()%4+1, newItem(ITEM_COAL,1), rand()%2);
         break;
         case TILE_IRONORE:
