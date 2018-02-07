@@ -1426,6 +1426,7 @@ void damageAndBreakTile(s8 level, int xt, int yt, int damage, int maxDamage, int
 
 void playerHurtTile(PlayerData *pd, int tile, s8 level, int xt, int yt, int damage, int dir){
     if(TESTGODMODE) damage = 99;
+	if(UnderStrengthEffect) damage = damage + 4;
     
     //TODO: Most of this can be combined a lot
     switch(tile){

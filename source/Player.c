@@ -67,6 +67,9 @@ void playerInitInventory(PlayerData *pd) {
     if(TESTGODMODE) {
 		addItemToInventory(newItem(ITEM_GOLD_APPLE,1), &(pd->inventory));
 		addItemToInventory(newItem(ITEM_STRENGTH_POTION,1), &(pd->inventory));
+		addItemToInventory(newItem(ITEM_REGEN_POTION,1), &(pd->inventory));
+		addItemToInventory(newItem(ITEM_SWIM_BREATH_POTION,1), &(pd->inventory));
+		addItemToInventory(newItem(ITEM_SPEED_POTION,1), &(pd->inventory));
 		addItemToInventory(newItem(ITEM_POTION_MAKER,0), &(pd->inventory));
         addItemToInventory(newItem(TOOL_SHOVEL,1), &(pd->inventory));
         addItemToInventory(newItem(TOOL_HOE,4), &(pd->inventory));
