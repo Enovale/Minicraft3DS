@@ -70,20 +70,20 @@ void updateMusic(int lvl, int time) {
 }
 
 void loadSounds() {
-	loadSound(&snd_playerHurt, "romfs:/resources/playerhurt.raw");
-	loadSound(&snd_playerDeath, "romfs:/resources/playerdeath.raw");
-	loadSound(&snd_monsterHurt, "romsfs:/resources/monsterhurt.raw");
-	loadSound(&snd_test, "romfs:/resources/test.raw");
-	loadSound(&snd_pickup, "romfs:/resources/pickup.raw");
-	loadSound(&snd_bossdeath, "romfs:/resources/bossdeath.raw");
-	loadSound(&snd_craft, "romfs:/resources/craft.raw");
+	loadSound(&snd_playerHurt, "resources/playerhurt.raw");
+	loadSound(&snd_playerDeath, "resources/playerdeath.raw");
+	loadSound(&snd_monsterHurt, "resources/monsterhurt.raw");
+	loadSound(&snd_test, "resources/test.raw");
+	loadSound(&snd_pickup, "resources/pickup.raw");
+	loadSound(&snd_bossdeath, "resources/bossdeath.raw");
+	loadSound(&snd_craft, "resources/craft.raw");
 	
-	loadSound(&music_menu, "romfs:/resources/music/menu.raw");
-	loadSound(&music_floor0, "romfs:/resources/music/floor0.raw");
-	loadSound(&music_floor1, "romfs:/resources/music/floor1.raw");
-	loadSound(&music_floor1_night, "romfs:/resources/music/floor1_night.raw");
-	loadSound(&music_floor23, "romfs:/resources/music/floor2_3.raw");
-	loadSound(&music_floor4, "romfs:/resources/music/floor4.raw");
+	loadSound(&music_menu, "resources/music/menu.raw");
+	loadSound(&music_floor0, "resources/music/floor0.raw");
+	loadSound(&music_floor1, "resources/music/floor1.raw");
+	loadSound(&music_floor1_night, "resources/music/floor1_night.raw");
+	loadSound(&music_floor23, "resources/music/floor2_3.raw");
+	loadSound(&music_floor4, "resources/music/floor4.raw");
 }
 
 void freeSounds(){

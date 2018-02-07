@@ -67,6 +67,7 @@ void playerInitInventory(PlayerData *pd) {
     if(TESTGODMODE) {
 		addItemToInventory(newItem(ITEM_GOLD_APPLE,1), &(pd->inventory));
 		addItemToInventory(newItem(ITEM_STRENGTH_POTION,1), &(pd->inventory));
+		addItemToInventory(newItem(ITEM_POTION_MAKER,0), &(pd->inventory));
         addItemToInventory(newItem(TOOL_SHOVEL,1), &(pd->inventory));
         addItemToInventory(newItem(TOOL_HOE,4), &(pd->inventory));
         addItemToInventory(newItem(TOOL_SWORD,4), &(pd->inventory));
@@ -233,34 +234,34 @@ bool playerUseItem(PlayerData *pd) {
             }
             break;
 		case ITEM_STRENGTH_POTION:
-			if(pd->entity.p.health < 20 && playerUseEnergy(pd, 2) && pd->entity.p.strengthTimer == 0){
+			if(pd->entity.p.health < 20 && pd->entity.p.strengthTimer == 0){
 				potionEffect(1);
-				--item->countLevel;
+				--(pd->activeItem->countLevel);
 			}
             return 0;
 		case ITEM_SPEED_POTION:
-			if(pd->entity.p.health < 20 && playerUseEnergy(pd, 2) && pd->entity.p.speedTimer == 0){
+			if(pd->entity.p.health < 20 && pd->entity.p.speedTimer == 0){
 				potionEffect(2);
-				--item->countLevel;
+				--(pd->activeItem->countLevel);
 			}
             return 0;
 		case ITEM_REGEN_POTION:
-			if(pd->entity.p.health < 20 && playerUseEnergy(pd, 2) && pd->entity.p.regenTimer == 0){
+			if(pd->entity.p.health < 20 && pd->entity.p.regenTimer == 0){
 				potionEffect(3);
-				--item->countLevel;
+				--(pd->activeItem->countLevel);
 			}
             return 0;
 		case ITEM_SWIM_BREATH_POTION:
-			if(pd->entity.p.health < 20 && playerUseEnergy(pd, 2) && pd->entity.p.swimBreathTimer == 0){
+			if(pd->entity.p.health < 20 && pd->entity.p.swimBreathTimer == 0){
 				potionEffect(4);
-				--item->countLevel;
+				--(pd->activeItem->countLevel);
 			}
             return 0;
 		case ITEM_GOLD_APPLE:
             if(pd->entity.p.health < 10 && playerUseEnergy(pd, 1)){
                 playerHeal(pd, 8); 
 				playerUseEnergy(pd, -10);
-                --item->countLevel;
+                --(pd->activeItem->countLevel);
             }
             return 0;
         case ITEM_FLESH:
