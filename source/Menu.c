@@ -5,7 +5,7 @@
 
 char options[][12] = {"Start Game", "Host Game", "Join Game", "How To Play", "Settings", "About", "Exit"};
 char keybOptions[][24] = {"Exit and Save", "Exit and Don't save","Reset to default"};
-char setOptions[][24] = {"Rebind Buttons", "Texture packs", "Debug Text:   ", "N3DS Speedup:   ", "Return to title"};
+char setOptions[][24] = {"Rebind Buttons", "Texture packs", "Test Features:   ", "N3DS Speedup:   ", "Return to title"};
 
 // Rebind buttons menu (Settings)
 int keys[] = {
