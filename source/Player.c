@@ -64,7 +64,7 @@ void playerInitInventory(PlayerData *pd) {
     addItemToInventory(newItem(ITEM_WORKBENCH,0), &(pd->inventory));
     addItemToInventory(newItem(ITEM_POWGLOVE,0), &(pd->inventory));   
     
-    if(shouldRenderDebug) {
+    if(shouldRenderDebug && playerCount < 1) {
 		addItemToInventory(newItem(ITEM_GOLD_APPLE,1), &(pd->inventory));
 		addItemToInventory(newItem(ITEM_STRENGTH_POTION,1), &(pd->inventory));
 		addItemToInventory(newItem(ITEM_REGEN_POTION,1), &(pd->inventory));
@@ -441,24 +441,52 @@ void tickPlayer(PlayerData *pd, bool inmenu) {
         pd->entity.p.ay = 0;
         
         if (pd->inputs.k_left.down){
-            pd->entity.p.ax -= 1;
-            pd->entity.p.dir = 2;
-            ++pd->entity.p.walkDist;
+			if(UnderSpeedEffect) {
+				pd->entity.p.ax -= 2;
+				pd->entity.p.dir = 2;
+				++pd->entity.p.walkDist;
+				++pd->entity.p.walkDist;
+			} else {
+				pd->entity.p.ax -= 1;
+				pd->entity.p.dir = 2;
+				++pd->entity.p.walkDist;
+			}
         }
         if (pd->inputs.k_right.down){
-            pd->entity.p.ax += 1;
-            pd->entity.p.dir = 3;
-            ++pd->entity.p.walkDist;
+            if(UnderSpeedEffect) {
+				pd->entity.p.ax += 2;
+				pd->entity.p.dir = 3;
+				++pd->entity.p.walkDist;
+				++pd->entity.p.walkDist;
+			} else {
+				pd->entity.p.ax += 1;
+				pd->entity.p.dir = 3;
+				++pd->entity.p.walkDist;
+			}
         }
         if (pd->inputs.k_up.down){
-            pd->entity.p.ay -= 1;
-            pd->entity.p.dir = 1;
-            ++pd->entity.p.walkDist;
+           if(UnderSpeedEffect) {
+				pd->entity.p.ay -= 2;
+				pd->entity.p.dir = 1;
+				++pd->entity.p.walkDist;
+				++pd->entity.p.walkDist;
+			} else {
+				pd->entity.p.ay -= 1;
+				pd->entity.p.dir = 1;
+				++pd->entity.p.walkDist;
+			}
         }
         if (pd->inputs.k_down.down){
-            pd->entity.p.ay += 1;
-            pd->entity.p.dir = 0;
-            ++pd->entity.p.walkDist;
+            if(UnderSpeedEffect) {
+				pd->entity.p.ay += 2;
+				pd->entity.p.dir = 0;
+				++pd->entity.p.walkDist;
+				++pd->entity.p.walkDist;
+			} else {
+				pd->entity.p.ay += 1;
+				pd->entity.p.dir = 0;
+				++pd->entity.p.walkDist;
+			}
         }
         if (pd->entity.p.staminaRechargeDelay % 2 == 0) moveMob(&(pd->entity), pd->entity.p.ax, pd->entity.p.ay);
         
@@ -485,15 +513,24 @@ void tickPlayer(PlayerData *pd, bool inmenu) {
     }
     
     //swimming stamina and drowning
-	if (swimming && pd->entity.p.swimTimer % 60 == 0) {
+	if (swimming && pd->entity.p.swimTimer % 60 == 0 && UnderSwimBreathEffect != true) {
 		if (pd->entity.p.stamina > 0) {
 			if(!shouldRenderDebug) --pd->entity.p.stamina;
 		} else {
 		    hurtEntity(&(pd->entity), 1, -1, 0xFFAF00FF, NULL);
 		}
 	}
+	
+	//Regen healing
+	if (regening && pd->entity.p.regenTimer % 75 == 0) {
+		 playerHeal(pd, 1);
+	}
     
     if(isWater(pd->entity.level, pd->entity.x>>4, pd->entity.y>>4)) ++pd->entity.p.swimTimer;
+	if(regening) ++pd->entity.p.regenTimer;
+	if(UnderSpeedEffect) ++pd->entity.p.speedTimer;
+	if(UnderStrengthEffect) ++pd->entity.p.strengthTimer;
+	if(UnderSwimBreathEffect) ++pd->entity.p.swimBreathTimer;
     if(pd->entity.p.attackTimer > 0) --pd->entity.p.attackTimer;
 	
 	//TODO - maybe move to own function

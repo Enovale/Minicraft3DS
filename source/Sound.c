@@ -70,7 +70,8 @@ void updateMusic(int lvl, int time) {
 }
 
 void loadSounds() {
-	loadSound(&snd_playerHurt, "resources/playerhurt.raw");
+	Result rc = romfsInit();
+	loadSound(&snd_playerHurt, "romfs:/resources/playerhurt.raw");
 	loadSound(&snd_playerDeath, "resources/playerdeath.raw");
 	loadSound(&snd_monsterHurt, "resources/monsterhurt.raw");
 	loadSound(&snd_test, "resources/test.raw");
@@ -78,7 +79,7 @@ void loadSounds() {
 	loadSound(&snd_bossdeath, "resources/bossdeath.raw");
 	loadSound(&snd_craft, "resources/craft.raw");
 	
-	loadSound(&music_menu, "resources/music/menu.raw");
+	loadSound(&music_menu, "romfs:/resources/music/menu.raw");
 	loadSound(&music_floor0, "resources/music/floor0.raw");
 	loadSound(&music_floor1, "resources/music/floor1.raw");
 	loadSound(&music_floor1_night, "resources/music/floor1_night.raw");

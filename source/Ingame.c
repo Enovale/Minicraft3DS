@@ -90,6 +90,9 @@ void startGame(bool load, char *filename) {
     for(int i=0; i<playerCount; i++) {
         initPlayer(players+i);
     }
+	if (playerCount > 1) {
+		shouldRenderDebug = false;
+	}
     
     if (!load) {
         initNewMap();
