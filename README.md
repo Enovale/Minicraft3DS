@@ -62,7 +62,7 @@ zlib: http://www.zlib.net/
 	make install
 ```
 
-**5. You can now build Minicraft3DS 3dsx and elf files by running make**
+**5. You can now build Minicraft3DS 3dsx, elf, cia, and 3ds files by running the build.bat file.**
 
 
 ----------
