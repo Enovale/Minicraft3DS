@@ -25,18 +25,18 @@ void renderTutorialPage(bool topScreen){
             case 0: // Moving the character
                 drawTextColor("Movement",(400-8*12)/2,40,0xFF007FBF);
                 drawText("Press   to move up",92,90);
-                renderButtonIcon(biasedCirclePad(k_up.input), 164, 88, 1);
+                renderButtonIcon(biasedCirclePad(localInputs.k_up.input), 164, 88, 1);
                 drawText("Press   to move down",80,120);
-                renderButtonIcon(biasedCirclePad(k_down.input), 152, 118, 1);
+                renderButtonIcon(biasedCirclePad(localInputs.k_down.input), 152, 118, 1);
                 drawText("Press   to move left",80,150);
-                renderButtonIcon(biasedCirclePad(k_left.input), 152, 148, 1);
+                renderButtonIcon(biasedCirclePad(localInputs.k_left.input), 152, 148, 1);
                 drawText("Press   to move right",74,180);
-                renderButtonIcon(biasedCirclePad(k_right.input), 146, 178, 1);
+                renderButtonIcon(biasedCirclePad(localInputs.k_right.input), 146, 178, 1);
                 break;
             case 1: // Attacking
                 drawTextColor("Attacking",(400-9*12)/2,40,0xFF007FBF);
                 drawText("Press   to Attack",98,80);
-                renderButtonIcon(k_attack.input & -k_attack.input, 168, 78, 1);
+                renderButtonIcon(localInputs.k_attack.input & -localInputs.k_attack.input, 168, 78, 1);
                 drawText("Attack with an item to use it",26,120);
                 drawText("Use the axe to cut down trees",26,140);
                 drawText("Use the sword to attack enemies",14,160);
@@ -46,21 +46,21 @@ void renderTutorialPage(bool topScreen){
             case 2: // Inventory
                 drawTextColor("Inventory",(400-9*12)/2,40,0xFF007FBF);
                 drawText("Press   to open the menu",56,80);
-                renderButtonIcon(biasedMenuXY(k_menu.input), 126, 78, 1);
+                renderButtonIcon(biasedMenuXY(localInputs.k_menu.input), 126, 78, 1);
                 drawText("Press   to scroll up",80,110);
-                renderButtonIcon(biasedCirclePad(k_up.input), 152, 108, 1);
+                renderButtonIcon(biasedCirclePad(localInputs.k_up.input), 152, 108, 1);
                 drawText("Press   to scroll down",68,140);
-                renderButtonIcon(biasedCirclePad(k_down.input), 140, 138, 1);
+                renderButtonIcon(biasedCirclePad(localInputs.k_down.input), 140, 138, 1);
                 drawText("Press   to select an item",50,170);
-                renderButtonIcon(k_accept.input & -k_accept.input, 120, 168, 1);
+                renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 120, 168, 1);
                 drawText("Press   to close the menu",50,200);
-                renderButtonIcon(k_decline.input & -k_decline.input, 120, 198, 1);
+                renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 120, 198, 1);
                 break;
             case 3: // Furniture
                 drawTextColor("Furniture",(400-9*12)/2,40,0xFF007FBF);
                 drawText("Use furniture for item crafting",(400-31*12)/2,74);
                 drawText("Press   to open the menu",56,100);
-                renderButtonIcon(biasedMenuXY(k_menu.input), 126, 98, 1);
+                renderButtonIcon(biasedMenuXY(localInputs.k_menu.input), 126, 98, 1);
                 drawText("while infront of the furniture",(400-30*12)/2,116);
                 drawText("Use the lantern item to light",(400-29*12)/2,144);
                 drawText("up underground areas",(400-20*12)/2,160);
@@ -72,10 +72,10 @@ void renderTutorialPage(bool topScreen){
                 drawText("Create new items and tools",(400-26*12)/2,74);
                 drawText("Go up to a furniture item and",(400-29*12)/2,104);
                 drawText("Press   to open the menu",56,120);
-                renderButtonIcon(biasedMenuXY(k_menu.input), 126, 118, 1);
+                renderButtonIcon(biasedMenuXY(localInputs.k_menu.input), 126, 118, 1);
                 drawText("Gather up the required materials",(400-32*12)/2,150);
                 drawText("and then press   to craft it",(400-28*12)/2,166);
-                renderButtonIcon(k_accept.input & -k_accept.input, 210, 164, 1);
+                renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 210, 164, 1);
                 break;
             case 5: // Farming
                 drawTextColor("Farming",(400-7*12)/2,40,0xFF007FBF);
@@ -108,17 +108,17 @@ void renderTutorialPage(bool topScreen){
         switch(pageNum){
             case 0: // Moving the character
                 render16(30,56,16,112,0);//Player up
-                renderButtonIcon(biasedCirclePad(k_up.input), 30,40, 2);
+                renderButtonIcon(biasedCirclePad(localInputs.k_up.input), 30,40, 2);
                 render16(60,56,0,112,0);//Player down
-                renderButtonIcon(biasedCirclePad(k_down.input), 60,40, 2);
+                renderButtonIcon(biasedCirclePad(localInputs.k_down.input), 60,40, 2);
                 render16(90,56,48,112,1);//Player left
-                renderButtonIcon(biasedCirclePad(k_left.input), 90,40, 2);
+                renderButtonIcon(biasedCirclePad(localInputs.k_left.input), 90,40, 2);
                 render16(120,56,48,112,0);//Player right
-                renderButtonIcon(biasedCirclePad(k_right.input), 120,40, 2);
+                renderButtonIcon(biasedCirclePad(localInputs.k_right.input), 120,40, 2);
                 break;
             case 1: // Attacking
                 render16(60,56,0,112,0);//Player-down
-                renderButtonIcon(k_attack.input & -k_attack.input, 80, 56, 2);
+                renderButtonIcon(localInputs.k_attack.input & -localInputs.k_attack.input, 80, 56, 2);
                 renderc(60,68,16,160,16,8,2);//Slash
                 
 				menuRenderTilePit(12,20,256,0);// grass pit
@@ -143,9 +143,9 @@ void renderTutorialPage(bool topScreen){
                 renderItemStuffWithText(ITEM_IRONINGOT,11,false,80,142);
                 sf2d_draw_rectangle(64, 110, 12, 12, 0xFF);
 		        drawText(">", 64, 110);
-                renderButtonIcon(biasedCirclePad(k_up.input), 44, 92, 1);
-                renderButtonIcon(k_accept.input & -k_accept.input, 44, 108, 1);
-                renderButtonIcon(biasedCirclePad(k_down.input), 44, 125, 1);
+                renderButtonIcon(biasedCirclePad(localInputs.k_up.input), 44, 92, 1);
+                renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 44, 108, 1);
+                renderButtonIcon(biasedCirclePad(localInputs.k_down.input), 44, 125, 1);
                 break;
             case 3: // Furniture
                 sf2d_draw_rectangle(64, 48, 192, 32, grassColor);
@@ -248,13 +248,13 @@ void renderTutorialPage(bool topScreen){
         drawText(pageText,(320-(strlen(pageText))*12)/2,12);
         if(pageNum > 0){
             drawText("<",2,16);
-            renderButtonIcon(k_menuPrev.input & -k_menuPrev.input, 8, 2, 2);
+            renderButtonIcon(localInputs.k_menuPrev.input & -localInputs.k_menuPrev.input, 8, 2, 2);
         }
         if(pageNum < maxPageNum){
             drawText(">",306,16);
-            renderButtonIcon(k_menuNext.input & -k_menuNext.input, 136, 2, 2);
+            renderButtonIcon(localInputs.k_menuNext.input & -localInputs.k_menuNext.input, 136, 2, 2);
         }
         drawText("Press   to exit",(320-(15*12))/2,218);
-        renderButtonIcon(k_decline.input & -k_decline.input, 140, 216, 1);
+        renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 140, 216, 1);
     }
 }

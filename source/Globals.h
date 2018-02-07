@@ -1,11 +1,14 @@
 #pragma once
+
 #include <3ds.h>
-#include "SaveLoad.h"
+#include "Entity.h"
+#include "Player.h"
 #include "Input.h"
 #include "MapGen.h"
 #include "Quests.h"
 
 #include "icons2_png.h"
+#include "player_png.h"
 #include "Font_png.h"
 #include "bottombg_png.h"
 
@@ -17,19 +20,23 @@
 #define MENU_TUTORIAL 2
 #define MENU_ABOUT 3
 #define MENU_SETTINGS 4
-#define MENU_INVENTORY 5
-#define MENU_CRAFTING 6
-#define MENU_CONTAINER 7
-#define MENU_WIN 8
-#define MENU_LOSE 9
-#define MENU_PAUSED 10
-#define MENU_LOADGAME 11
-#define MENU_SETTINGS_REBIND 12
-#define MENU_SETTINGS_TP 13
-#define MENU_DUNGEON 14
-#define MENU_NPC 15
-#define MENU_MULTIPLAYER 16
-#define MENU_ARMOR 17
+#define MENU_LOADGAME 5
+#define MENU_SETTINGS_REBIND 6
+#define MENU_SETTINGS_TP 7
+#define MENU_MULTIPLAYER_HOST 8
+#define MENU_MULTIPLAYER_JOIN 9
+#define MENU_MULTIPLAYER_WAIT 10
+#define MENU_LOADING 11
+
+#define MENU_PAUSED 100
+#define MENU_INVENTORY 101
+#define MENU_CRAFTING 102
+#define MENU_CONTAINER 103
+#define MENU_WIN 104
+#define MENU_LOSE 105
+#define MENU_DUNGEON 106
+#define MENU_NPC 107
+#define MENU_CHARACTER_CUSTOMIZE 108
 
 #define NPC_GIRL 0
 #define NPC_PRIEST 1
@@ -79,15 +86,16 @@
 
 #define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
 
+//WARNING: Having this set to different values in different clients will break multiplayer!
+#define TESTGODMODE false
 
-bool screenShot;
+u32 localUID;
+
 int loadedtp;
 
 u8 MODEL_3DS;
 
 extern char versionText[34];
-
-Entity player;
 
 bool shouldRenderDebug;
 bool shouldSpeedup;
@@ -96,18 +104,12 @@ bool UnderStrengthEffect;
 bool UnderSpeedEffect;
 bool regening;
 bool UnderSwimBreathEffect;
-u8 zoomLevel;
-char mapText[32];
-s16 mScrollX, mScrollY;
 
 sf2d_texture *icons;
+sf2d_texture *playerSprites;
 sf2d_texture *font;
 sf2d_texture *bottombg;
-sf2d_texture * minimap[6];
-u8 map[6][128*128];
-u8 data[6][128*128];
-u8 minimapData[128*128];
-u8 compassData[6][3];
+sf2d_texture *minimap[6];
 
 u32 dirtColor[5];
 u32 grassColor;
@@ -129,65 +131,72 @@ char currentFileName[256];
 extern u8 currentMenu;
 extern char fpsstr[];
 u8 initGame;
+u8 initMPGame;
 u8 initBGMap;
 Item noItem;
 int airWizardHealthDisplay;
 s16 awX, awY;
-u32 tickCount;
-RecipeManager* currentRecipes;
-Entity* curChestEntity;
-char* currentCraftTitle;
-s16 curInvSel;
 bool quitGame;
 s8 currentSelection;
-bool isRemote;
 
-u16 daytime;
-int day;
-u8 season;
-bool rain;
+typedef struct _worldData {
+    u8 map[6][128*128];
+    u8 data[6][128*128];
+    
+    u16 daytime;
+    int day;
+    u8 season;
+    bool rain;
+    
+    u8 compassData[6][3];
+} WorldData;
 
-void tickTile(int x, int y);
+WorldData worldData;
+
+//TODO: cleanup the order
+int getEntities(Entity** result, s8 level, int x0, int y0, int x1, int y1);
+
+bool moveMob(Entity* e, int xa, int ya);
+void hurtEntity(Entity *e, int damage, int dir, u32 hurtColor, Entity *damager);
+
+void tickTile(s8 level, int x, int y);
 bool tileIsSolid(int tile, Entity * e);
 
-s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir);
+s8 itemTileInteract(int tile, PlayerData *pd, Item *item, s8 level, int x, int y, int px, int py, int dir);
 
 void tickEntity(Entity* e);
 
-void tickTouchMap();
-void tickTouchQuickSelect();
-
 void trySpawn(int count, int level);
 
-int getTile(int x, int y);
+int getTile(s8 level, int x, int y);
+void setTile(int id, s8 level, int x, int y);
+int getData(s8 level, int x, int y);
+void setData(int id, s8 level, int x, int y);
 u32 getTileColor(int tile);
-void setTile(int id, int x, int y);
-int getData(int x, int y);
-void setData(int id, int x, int y);
 
 bool intersectsEntity(int x, int y, int r, Entity* e);
 
 bool EntityBlocksEntity(Entity* e1, Entity* e2);
 void EntityVsEntity(Entity* e1, Entity* e2);
-void entityTileInteract(Entity* e, int tile,int x, int y);
+bool ItemVsEntity(PlayerData *pd, Item *item, Entity *e, int dir);
+void entityTileInteract(Entity* e, int tile, s8 level, int x, int y);
 
-void initPlayer();
-void tickPlayer();
-void playerAttack();
-bool isSwimming();
-bool playerUseEnergy(int amount);
-void playerHurtTile(int tile, int xt, int yt, int damage, int dir);
-bool playerIntersectsEntity(Entity* e);
-void playerEntityInteract(Entity* e);
-void playerSetActiveItem(Item * item);
+void openCraftingMenu(PlayerData *pd, RecipeManager *rm, char *title);
+bool useEntity(PlayerData *pd, Entity* e);
 
-void enterDungeon();
-void leaveDungeon();
+bool isWater(s8 level, int xt, int yt);
 
-void setMinimapVisible(int level, int x, int y, bool visible);
-bool getMinimapVisible(int level, int x, int y);
-u32 getMinimapColor(int level, int x, int y);
-void initMinimapLevel(int level, bool loadUpWorld);
+void playerHurtTile(PlayerData *pd, int tile, s8 level, int xt, int yt, int damage, int dir);
+void playerEntityInteract(PlayerData *pd, Entity* e);
+
+bool dungeonActive();
+void enterDungeon(PlayerData *pd);
+void leaveDungeon(PlayerData *pd);
+
+void setMinimapVisible(PlayerData *pd, int level, int x, int y, bool visible);
+bool getMinimapVisible(PlayerData *pd, int level, int x, int y);
+u32 getMinimapColor(PlayerData *pd, int level, int x, int y);
+void initMinimapLevel(PlayerData *pd, int level);
 void updateLevel1Map();
 
 void reloadColors();

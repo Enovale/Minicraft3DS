@@ -15,56 +15,52 @@ double sample(double * values, int x, int y) {
 }
 
 double * Noise(int width, int height, int featureSize) {
-        w = width;
-        h = height;
-		double * values = malloc(sizeof(double) * w * h);
-        int x, y;
-		for(x = 0; x < w; x+=featureSize){
-            for(y = 0; y < w; y+=featureSize){
-				values[(x & (w - 1)) + (y & (h - 1)) * w] = nextFloat() * 2 - 1;
-			}
-		}
+    w = width;
+    h = height;
+    double * values = malloc(sizeof(double) * w * h);
+    int x, y;
+    for(x = 0; x < w; x+=featureSize){
+        for(y = 0; y < w; y+=featureSize){
+            values[(x & (w - 1)) + (y & (h - 1)) * w] = nextFloat() * 2 - 1;
+        }
+    }
 
-		int stepSize = featureSize;
-		double scale = 1.0 / w;
-		double scaleMod = 1;
-		do {
-			int halfStep = stepSize / 2;
-			for(x = 0; x < w; x+=stepSize){
-                for(y = 0; y < w; y+=stepSize){
-					double a = sample(values,x, y);
-					double b = sample(values,x + stepSize, y);
-					double c = sample(values,x, y + stepSize);
-					double d = sample(values,x + stepSize, y + stepSize);
+    int stepSize = featureSize;
+    double scale = 1.0 / w;
+    double scaleMod = 1;
+    do {
+        int halfStep = stepSize / 2;
+        for(x = 0; x < w; x+=stepSize){
+            for(y = 0; y < w; y+=stepSize){
+                double a = sample(values,x, y);
+                double b = sample(values,x + stepSize, y);
+                double c = sample(values,x, y + stepSize);
+                double d = sample(values,x + stepSize, y + stepSize);
 
-					double e = (a + b + c + d) / 4.0 + (nextFloat() * 2 - 1) * stepSize * scale;
-					values[((x + halfStep) & (w - 1)) + ((y + halfStep) & (h - 1)) * w] = e;
-                }
+                double e = (a + b + c + d) / 4.0 + (nextFloat() * 2 - 1) * stepSize * scale;
+                values[((x + halfStep) & (w - 1)) + ((y + halfStep) & (h - 1)) * w] = e;
             }
-			for(x = 0; x < w; x+=stepSize){
-                for(y = 0; y < w; y+=stepSize){
-					double a = sample(values,x, y);
-					double b = sample(values,x + stepSize, y);
-					double c = sample(values,x, y + stepSize);
-					double d = sample(values,x + halfStep, y + halfStep);
-					double e = sample(values,x + halfStep, y - halfStep);
-					double f = sample(values,x - halfStep, y + halfStep);
-					double H = (a + b + d + e) / 4.0 + (nextFloat() * 2 - 1) * stepSize * scale * 0.5;
-					double g = (a + c + d + f) / 4.0 + (nextFloat() * 2 - 1) * stepSize * scale * 0.5;
-					values[((x + halfStep) & (w - 1)) + (y & (h - 1)) * w] = H;
-		            values[(x & (w - 1)) + ((y + halfStep) & (h - 1)) * w] = g;
-                }
+        }
+        for(x = 0; x < w; x+=stepSize){
+            for(y = 0; y < w; y+=stepSize){
+                double a = sample(values,x, y);
+                double b = sample(values,x + stepSize, y);
+                double c = sample(values,x, y + stepSize);
+                double d = sample(values,x + halfStep, y + halfStep);
+                double e = sample(values,x + halfStep, y - halfStep);
+                double f = sample(values,x - halfStep, y + halfStep);
+                double H = (a + b + d + e) / 4.0 + (nextFloat() * 2 - 1) * stepSize * scale * 0.5;
+                double g = (a + c + d + f) / 4.0 + (nextFloat() * 2 - 1) * stepSize * scale * 0.5;
+                values[((x + halfStep) & (w - 1)) + (y & (h - 1)) * w] = H;
+                values[(x & (w - 1)) + ((y + halfStep) & (h - 1)) * w] = g;
             }
-			
-			stepSize /= 2;
-			scale *= (scaleMod + 0.8);
-			scaleMod *= 0.3;
-		} while (stepSize > 1);
-		return values;
-	}
-	
-void newSeed(){
-    srand(time(NULL));
+        }
+        
+        stepSize /= 2;
+        scale *= (scaleMod + 0.8);
+        scaleMod *= 0.3;
+    } while (stepSize > 1);
+    return values;
 }
 	
 //TODO: Will need to reset entity manager if generation is retried
@@ -331,8 +327,10 @@ void createUndergroundMap(int w, int h, int depthLevel, int level, u8 * map, u8 
             }
         }
         
+        //generate dwarf house
         if(depthLevel==3) {
             createDwarfHouse(w, h, level, map, data);
+        //generate mushroom patches
         } else if(depthLevel==2) {
             for (i = 0; i < w * h / 5400; ++i) {
                 int xs = rand()%w;
@@ -361,6 +359,7 @@ void createUndergroundMap(int w, int h, int depthLevel, int level, u8 * map, u8 
             }
         }
         
+        //generate ores
         for (i = 0; i < w * h / 400; ++i) {
 			int x = rand()%w;
 			int y = rand()%h;
@@ -374,6 +373,8 @@ void createUndergroundMap(int w, int h, int depthLevel, int level, u8 * map, u8 
 				}
 			}
 		}
+        
+        //generate stairs down
 	    if (depthLevel < 3){
         int sCount, attempts = 0;
 		  for (sCount = 0; sCount < 4;) {
@@ -396,6 +397,22 @@ void createUndergroundMap(int w, int h, int depthLevel, int level, u8 * map, u8 
 			 if(attempts < (w*h/100)) ++attempts; else break;
 		  }
         }
+        
+        //generate dungeon entrance
+        if(depthLevel==3) {
+            map[w/2+0 + (h/2+0) * w] = TILE_DUNGEON_ENTRANCE;
+            
+            map[w/2-1 + (h/2+0) * w] = TILE_DIRT;
+            map[w/2+1 + (h/2+0) * w] = TILE_DIRT;
+            map[w/2+0 + (h/2-1) * w] = TILE_DIRT;
+            map[w/2+1 + (h/2+1) * w] = TILE_DIRT;
+            
+            map[w/2-1 + (h/2-1) * w] = TILE_DUNGEON_WALL;
+            map[w/2-1 + (h/2+1) * w] = TILE_DUNGEON_WALL;
+            map[w/2+1 + (h/2-1) * w] = TILE_DUNGEON_WALL;
+            map[w/2+1 + (h/2+1) * w] = TILE_DUNGEON_WALL;
+        }
+        
         free(mnoise1);
         free(mnoise2);
         free(mnoise3);

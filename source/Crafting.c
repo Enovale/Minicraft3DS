@@ -1,5 +1,15 @@
 #include "Crafting.h"
 
+void cloneRecipeManager(RecipeManager *from, RecipeManager *to) {
+    //free old manager recipes
+    free(to->recipes);
+    
+    //copy over recipes
+    to->size = from->size;
+    to->recipes = (Recipe*)malloc(sizeof(Recipe) * to->size);
+    memcpy(to->recipes, from->recipes, sizeof(Recipe) * to->size);
+}
+
 void checkCanCraftRecipes(RecipeManager * rm, Inventory * inv){
     int i, j;
     for(i = 0; i < rm->size; i++){

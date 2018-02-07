@@ -1,9 +1,11 @@
 #include "Menu.h"
 
-char options[][12] = {"Start Game", "Join Game", "How To Play","Settings", "About", "Exit"};
-char pOptions[][24] = {"Return to game", "Save Progress", "Host World", "Exit to title"};
+#include "PacketHandler.h"
+#include "SaveLoad.h"
+
+char options[][12] = {"Start Game", "Host Game", "Join Game", "How To Play", "Settings", "About", "Exit"};
 char keybOptions[][24] = {"Exit and Save", "Exit and Don't save","Reset to default"};
-char setOptions[][24] = {"Rebind Buttons", "Texture packs", "Test Features:   ", "N3DS Speedup:   ", "Return to title"};
+char setOptions[][24] = {"Rebind Buttons", "Texture packs", "Debug Text:   ", "N3DS Speedup:   ", "Return to title"};
 
 // Rebind buttons menu (Settings)
 int keys[] = {
@@ -22,6 +24,7 @@ bool left = false;
 bool selBut = false;
 s8 errorBut = -1;
 s8 curSaveSel = 0;
+int menuScanTimer = 0;
 
 // Load Game Menu (Start Game)
 char fileNames[1000][256];
@@ -33,14 +36,13 @@ s8 touchDelay = 0;
 bool isTouching = false;
 int touchX = 0, touchY = 0, touchW = 0, touchH = 0;
 s8 errorFileName = 0;
+bool toMultiplayer;
 
 // Load Texturepacks Menu
 char tpFileNames[1000][256];
 char tpFileComment[1000][60];
 s16 tpFileCount = 0;
 s8 isLoadingTP = 0;
-
-s16 pauseSaveDisplayTimer = 0;
 
 void readFiles(){
     memset(&fileNames, 0, sizeof(fileNames)); // reset fileNames
@@ -50,12 +52,16 @@ void readFiles(){
     d = opendir(".");
     if (d){
         while ((dir = readdir(d)) != NULL) {
-            if (strstr(dir->d_name, ".wld") != NULL) { // Check if filename contains ".wld"
+            if (strncmp(dir->d_name+strlen(dir->d_name)-4, ".msv", 4) == 0) { // Check if filename contains ".msv"
                 strncpy(fileNames[worldFileCount], dir->d_name, strlen(dir->d_name)-4);
-                FILE * file = fopen(dir->d_name, "rb");
-                fread(&fileScore[worldFileCount],sizeof(int), 1, file);
-                fread(&fileWin[worldFileCount],sizeof(bool), 1, file);
-                fclose(file);
+                //TODO: This no longer works, update for new format:
+                //FILE * file = fopen(dir->d_name, "rb");
+                //fread(&fileScore[worldFileCount],sizeof(int), 1, file);
+                //fread(&fileWin[worldFileCount],sizeof(bool), 1, file);
+                //fclose(file);
+                fileScore[worldFileCount] = 0;
+                fileWin[worldFileCount] = false;
+                
                 ++worldFileCount;
             }
         }
@@ -105,7 +111,7 @@ s8 checkFileNameForErrors(){
     d = opendir(".");
     if (d){
         while ((dir = readdir(d)) != NULL) {
-            if (strstr(dir->d_name, ".wld") != NULL) { // Check if filename contains ".wld"
+            if (strstr(dir->d_name, ".msv") != NULL) { // Check if filename contains ".msv"
                 char cmprFile[256];
                 strncpy(cmprFile, dir->d_name, strlen(dir->d_name)-4);
                 if(strncmp(fileNames[worldFileCount],cmprFile,strlen(fileNames[worldFileCount])) == 0) return 3; // Error: Filename cannot already exist.
@@ -123,7 +129,7 @@ void addToFileName(char * c){
 
 /* Keypad */
 void doTouchButton(){
-    int xVal = k_touch.px, yVal = k_touch.py;
+    int xVal = localInputs.k_touch.px, yVal = localInputs.k_touch.py;
     int strLength = strlen(fileNames[worldFileCount]);
     if(yVal >= 60 && yVal < 80){ // 0 to 9
         if(xVal >= 4 && xVal < 4+16){ touchX = 4; if(strLength < 24)addToFileName("1");}
@@ -281,7 +287,7 @@ void initMenus() {
 	
 	if(worldFileCount>0) {
 		memset(&currentFileName, 0, 255); // reset currentFileName
-        sprintf(currentFileName,"%s.wld",fileNames[currentSelection]);
+        sprintf(currentFileName,"%s.msv",fileNames[currentSelection]);
 		
 		initBGMap = 1;
 	} else {
@@ -289,8 +295,8 @@ void initMenus() {
 	}
 	
 	menuHasMapLoaded = true;
-	menuxa = (rand()%3 - 1) * 0.25;
-	menuya = (rand()%3 - 1) * 0.25;
+    while(menuxa==0) menuxa = (rand()%3 - 1) * 0.25;
+	while(menuya==0) menuya = (rand()%3 - 1) * 0.25;
 }
 
 Item median;
@@ -299,48 +305,48 @@ void tickMenu(int menu){
         case MENU_SETTINGS_REBIND:
         if(!bindOpt){
             if(!selBut){
-		        if (k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection=21;}
-		        if (k_down.clicked){ ++currentSelection; if(currentSelection > 21)currentSelection=0;}
-		        if (k_left.clicked){ left = true;}
-		        if (k_right.clicked){ left = false;}
+		        if (localInputs.k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection=21;}
+		        if (localInputs.k_down.clicked){ ++currentSelection; if(currentSelection > 21)currentSelection=0;}
+		        if (localInputs.k_left.clicked){ left = true;}
+		        if (localInputs.k_right.clicked){ left = false;}
             } else {
-                if (k_left.clicked){ 
+                if (localInputs.k_left.clicked){ 
                     if(left)switchGameBut(true,keys[currentSelection]);
                     else switchMenuBut(true,keys[currentSelection]);
-                } else if (k_right.clicked) { 
+                } else if (localInputs.k_right.clicked) { 
                     if(left)switchGameBut(false,keys[currentSelection]);
                     else switchMenuBut(false,keys[currentSelection]);
                 }
             }
 		    
-            if (k_accept.clicked) selBut = !selBut;
-            if (k_decline.clicked){ 
+            if (localInputs.k_accept.clicked) selBut = !selBut;
+            if (localInputs.k_decline.clicked){ 
                 bindOpt = true;
                 curSaveSel = 0;
             }
         } else {
-		    if (k_up.clicked){ --curSaveSel; if(curSaveSel < 0)curSaveSel=2;}
-		    if (k_down.clicked){ ++curSaveSel; if(curSaveSel > 2)curSaveSel=0;}
-            if (k_decline.clicked){ 
+		    if (localInputs.k_up.clicked){ --curSaveSel; if(curSaveSel < 0)curSaveSel=2;}
+		    if (localInputs.k_down.clicked){ ++curSaveSel; if(curSaveSel > 2)curSaveSel=0;}
+            if (localInputs.k_decline.clicked){ 
                 bindOpt = false;
                 errorBut = -1;
             }
-            if (k_accept.clicked){
+            if (localInputs.k_accept.clicked){
                 switch(curSaveSel){
                     case 0: // Exit and save  
                         if(checkPropButtons() == -1){
-                            k_up.input = keyProp[0];
-                            k_down.input = keyProp[1];
-                            k_left.input = keyProp[2];
-                            k_right.input = keyProp[3];
-                            k_attack.input = keyProp[4];
-                            k_menu.input = keyProp[5];
-                            k_pause.input = keyProp[6];
-                            k_accept.input = keyProp[7];
-                            k_decline.input = keyProp[8];
-                            k_delete.input = keyProp[9];
-                            k_menuNext.input = keyProp[10];
-                            k_menuPrev.input = keyProp[11];
+                            localInputs.k_up.input = keyProp[0];
+                            localInputs.k_down.input = keyProp[1];
+                            localInputs.k_left.input = keyProp[2];
+                            localInputs.k_right.input = keyProp[3];
+                            localInputs.k_attack.input = keyProp[4];
+                            localInputs.k_menu.input = keyProp[5];
+                            localInputs.k_pause.input = keyProp[6];
+                            localInputs.k_accept.input = keyProp[7];
+                            localInputs.k_decline.input = keyProp[8];
+                            localInputs.k_delete.input = keyProp[9];
+                            localInputs.k_menuNext.input = keyProp[10];
+                            localInputs.k_menuPrev.input = keyProp[11];
                             
                             FILE *fs=fopen("btnSave.bin","wb");
                             fwrite(keyProp,sizeof(int),12,fs);
@@ -376,75 +382,11 @@ void tickMenu(int menu){
                 }
             }
         break;
-        case MENU_PAUSED:
-            if(!areYouSure && !areYouSureSave){
-                if(pauseSaveDisplayTimer > 0) --pauseSaveDisplayTimer;
-                if (k_pause.clicked || k_decline.clicked) currentMenu = MENU_NONE;
-		        if (k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection=3;}
-		        if (k_down.clicked){ ++currentSelection; if(currentSelection > 3)currentSelection=0;}
-                if (k_accept.clicked){
-                    switch(currentSelection){
-                    case 0:      
-                        currentMenu = MENU_NONE;
-                        break;
-                    case 1:
-	                    if(currentLevel!=5) areYouSureSave = true;
-                        break;
-                    case 2:
-                        networkHost();
-                        currentMenu = MENU_NONE;
-                        break;
-                    case 3:
-	                    areYouSure = true;
-                        break;
-                    }
-                }
-            } else if(areYouSureSave) {
-                if (k_accept.clicked){
-                    pauseSaveDisplayTimer = 60;
-                    saveCurrentWorld(currentFileName, &eManager, &player, (u8*)map, (u8*)data);
-                    areYouSureSave = false;
-                    areYouSure = false;
-                } else if (k_decline.clicked){
-                    areYouSureSave = false;
-                    areYouSure = false;
-                }
-            } else {
-                if (k_accept.clicked){
-                    areYouSure = false;
-                    areYouSureSave = false;
-	                sf2d_set_clear_color(0xFF);
-                    currentSelection = 0;
-                    currentMenu = MENU_TITLE;
-                    
-                    networkDisconnect();
-					
-					playMusic(music_menu);
-                } else if (k_decline.clicked){
-                    areYouSure = false;
-                    areYouSureSave = false;
-                }
-            }
+        
+        case MENU_ABOUT:
+            if (localInputs.k_decline.clicked) currentMenu = MENU_TITLE;
         break;
-        case MENU_INVENTORY:
-            if (k_menu.clicked || k_decline.clicked){
-                 currentMenu = MENU_NONE;
-                 player.p.activeItem = &noItem;
-                 player.p.isCarrying = false;
-            }
-            if (k_accept.clicked){ // Select item from inventory
-                if(player.p.inv->lastSlot!=0){
-                    median = player.p.inv->items[curInvSel]; // create copy of item.
-                    removeItemFromInventory(curInvSel, player.p.inv); // remove original
-                    pushItemToInventoryFront(median, player.p.inv); // add copy to front
-					playerSetActiveItem(&player.p.inv->items[0]); // active item = copy.
-                }
-                currentMenu = MENU_NONE;
-            }
-		    if (k_up.clicked){ --curInvSel; if(curInvSel < 0)curInvSel=player.p.inv->lastSlot-1;}
-		    if (k_down.clicked){ ++curInvSel; if(curInvSel > player.p.inv->lastSlot-1)curInvSel=0;}
-        break;
-		
+		/*
 		case MENU_ARMOR:
             if (k_delete.clicked || k_decline.clicked){
                  currentMenu = MENU_NONE;
@@ -463,178 +405,87 @@ void tickMenu(int menu){
 		    if (k_up.clicked){ --curInvSel; if(curInvSel < 0)curInvSel=player.p.inv->lastSlot-1;}
 		    if (k_down.clicked){ ++curInvSel; if(curInvSel > player.p.inv->lastSlot-1)curInvSel=0;}
         break;
-        
-        case MENU_CRAFTING:
-        if (k_menu.clicked || k_decline.clicked) currentMenu = MENU_NONE;
-        if (k_accept.clicked){
-            int newslot = player.p.activeItem->slotNum + 1;
-            if(craftItem(currentRecipes, &currentRecipes->recipes[curInvSel], player.p.inv)){
-                playSound(snd_craft);
-                if(player.p.activeItem != &noItem)player.p.activeItem = &player.p.inv->items[newslot];
-            }
-        }
-		if (k_up.clicked){ --curInvSel; if(curInvSel < 0)curInvSel=currentRecipes->size-1;}
-		if (k_down.clicked){ ++curInvSel; if(curInvSel > currentRecipes->size-1)curInvSel=0;}
-        break;
-        
-        case MENU_WIN:
-            if (k_accept.clicked){ 
-	            sf2d_set_clear_color(0xFF);
-                currentSelection = 0;
-                currentMenu = MENU_TITLE;
-                saveCurrentWorld(currentFileName, &eManager, &player, (u8*)map, (u8*)data);
-				
-				playMusic(music_menu);
-            }
-        break;
-        case MENU_LOSE:
-            if (k_accept.clicked){ 
-	            sf2d_set_clear_color(0xFF);
-                currentSelection = 0;
-                currentMenu = MENU_TITLE;
-				
-				playMusic(music_menu);
-            }
-        break;
-        case MENU_ABOUT:
-            if (k_decline.clicked) currentMenu = MENU_TITLE;
-        break;
-        
-        case MENU_CONTAINER:
-			if (k_menu.clicked || k_decline.clicked) currentMenu = MENU_NONE;
-			
-			if (k_left.clicked) {
-				curChestEntity->entityFurniture.r = 0;
-				int tmp = curInvSel;
-				curInvSel = curChestEntity->entityFurniture.oSel;
-				curChestEntity->entityFurniture.oSel = tmp;
-			}
-			if (k_right.clicked) {
-				curChestEntity->entityFurniture.r = 1;
-				int tmp = curInvSel;
-				curInvSel = curChestEntity->entityFurniture.oSel;
-				curChestEntity->entityFurniture.oSel = tmp;
-			}
-			
-			Inventory* i1 = curChestEntity->entityFurniture.r == 1 ? player.p.inv : curChestEntity->entityFurniture.inv;
-			Inventory* i2 = curChestEntity->entityFurniture.r == 0 ? player.p.inv : curChestEntity->entityFurniture.inv;
-			int len = i1->lastSlot;
-			if (curInvSel < 0) curInvSel = 0;
-			if (curInvSel >= len) curInvSel = len - 1;
-			if (k_up.clicked) --curInvSel;
-			if (k_down.clicked) ++curInvSel;
-			if (len == 0) curInvSel = 0;
-			if (curInvSel < 0) curInvSel += len;
-			if (curInvSel >= len) curInvSel -= len;
-			
-			if(k_accept.clicked && len > 0){
-				Item* pullItem = &i1->items[curInvSel];
-				Item pushItem = newItem(pullItem->id,pullItem->countLevel);
-				pushItem.chestPtr = pullItem->chestPtr;
-				pushItemToInventoryFront(pushItem, i2);
-				if(i2 == player.p.inv){
-					int newslot = player.p.activeItem->slotNum + 1;
-					player.p.activeItem = &player.p.inv->items[newslot];
-				} else if(pullItem == player.p.activeItem){
-					player.p.activeItem = &noItem;
-				}
-				removeItemFromCurrentInv(pullItem);
-				if (curInvSel >= i1->lastSlot) curInvSel = i1->lastSlot - 1;
-			}
-        break;
-		
-		case MENU_DUNGEON:
-			if (k_menu.clicked || k_decline.clicked) currentMenu = MENU_NONE;
-			
-			if(k_accept.clicked) {
-				if(currentLevel!=5) {
-					Item * item = getItemFromInventory(ITEM_DUNGEON_KEY, player.p.inv);
-					if(item!=NULL) {
-						--item->countLevel;
-						if(item->countLevel==0) {
-							removeItemFromCurrentInv(item);
-						}
-						
-						enterDungeon();
-					} else if(shouldRenderDebug) {
-                        enterDungeon();
-                    }
-				} else {
-					leaveDungeon();
-				}
-				
-				currentMenu = MENU_NONE;
-			}
-		break;
+		*/
         
         case MENU_LOADGAME:
             if(!enteringName && !areYouSure){ // World select
-                if (k_decline.clicked){
-                    currentMenu = MENU_TITLE;
-                    currentSelection = 0;
+                if (localInputs.k_decline.clicked){
+                    if(toMultiplayer) {
+                        currentMenu = MENU_MULTIPLAYER_HOST;
+                    } else {
+                        currentMenu = MENU_TITLE;
+                        currentSelection = 0;
+                    }
                 }
-                if (k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection = worldFileCount;}
-                if (k_down.clicked){ ++currentSelection; if(currentSelection > worldFileCount)currentSelection=0;}
+                if (localInputs.k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection = worldFileCount;}
+                if (localInputs.k_down.clicked){ ++currentSelection; if(currentSelection > worldFileCount)currentSelection=0;}
             
-                if(k_delete.clicked){
+                if(localInputs.k_delete.clicked){
                     if(currentSelection < worldFileCount) areYouSure = true;
                 }
             
-                if(k_accept.clicked){
+                if(localInputs.k_accept.clicked){
                     if(currentSelection == worldFileCount){
                         
                         enteringName = true;
                     } else {
                         memset(&currentFileName, 0, 255); // reset currentFileName
-                        sprintf(currentFileName,"%s.wld",fileNames[currentSelection]);
+                        sprintf(currentFileName, "%s.msv", fileNames[currentSelection]);
                         playSound(snd_test);
-                        initGame = 1;
-                        currentMenu = MENU_NONE;
-                        isRemote = false;
+                        if(toMultiplayer) {
+                            initMPGame = 2;
+                        } else {
+                            initGame = 1;
+                        }
+                        currentMenu = MENU_LOADING;
                     }
                 }
             } else if (areYouSure){
-                if (k_decline.clicked || k_delete.clicked) areYouSure = false;
-                if (k_accept.clicked){
-                    sprintf(currentFileName,"%s.wld",fileNames[currentSelection]);
+                if (localInputs.k_decline.clicked || localInputs.k_delete.clicked) areYouSure = false;
+                if (localInputs.k_accept.clicked){
+                    sprintf(currentFileName,"%s.msv",fileNames[currentSelection]);
                     remove(currentFileName);
                     readFiles();
                     enteringName = false;
                     areYouSure = false;
                     memset(&currentFileName, 0, 255); // reset currentFileName
                 }
-            }else { // Enter new world name.
-                if(k_decline.clicked) enteringName = false;
-                if(k_accept.clicked && errorFileName == 0){
+            } else { // Enter new world name.
+                if(localInputs.k_decline.clicked) enteringName = false;
+                if(localInputs.k_accept.clicked && errorFileName == 0){
                     errorFileName = checkFileNameForErrors();
                     if(errorFileName == 0){ // If no errors are found with the filename, then start a new game!
                         memset(&currentFileName, 0, 255); // reset currentFileName
-                        sprintf(currentFileName,"%s.wld",fileNames[worldFileCount]);
-                        currentMenu = MENU_NONE;
+                        sprintf(currentFileName, "%s.msv", fileNames[worldFileCount]);
+                        currentMenu = MENU_LOADING;
                         playSound(snd_test);
-                        initGame = 2;
+                        if(toMultiplayer) {
+                            initMPGame = 2;
+                        } else {
+                            initGame = 1;
+                        }
                         ++worldFileCount;
-                        isRemote = false;
+                        currentMenu = MENU_LOADING;
                     }
                 }
-                if((k_touch.px != 0 || k_touch.py != 0) && touchDelay == 0){ 
+                if((localInputs.k_touch.px != 0 || localInputs.k_touch.py != 0) && touchDelay == 0){ 
                     if(!isTouching)doTouchButton(); 
                 }
-                else if(k_touch.px == 0 || k_touch.py == 0) isTouching = false;
+                else if(localInputs.k_touch.px == 0 || localInputs.k_touch.py == 0) isTouching = false;
                 if(touchDelay > 0) --touchDelay;
             }
         break;
         case MENU_SETTINGS_TP:
             
-            if (k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection = tpFileCount-1;}
-            if (k_down.clicked){ ++currentSelection; if(currentSelection > tpFileCount-1)currentSelection=0;}
-            if (k_decline.clicked){
+            if (localInputs.k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection = tpFileCount-1;}
+            if (localInputs.k_down.clicked){ ++currentSelection; if(currentSelection > tpFileCount-1)currentSelection=0;}
+            if (localInputs.k_decline.clicked){
                 if(isLoadingTP < 1){
                     currentMenu = MENU_SETTINGS;
                     currentSelection = 1;
                 }
             }
-            if (k_accept.clicked){
+            if (localInputs.k_accept.clicked){
                 
                 if(currentSelection > 0){
                     isLoadingTP = 4;
@@ -651,35 +502,35 @@ void tickMenu(int menu){
         break;
         
         case MENU_SETTINGS:
-		    if (k_up.clicked){ 
+		    if (localInputs.k_up.clicked){ 
                 --currentSelection; 
                 if(currentSelection == 3 && !((MODEL_3DS & 6) != 0)) --currentSelection; 
                 if(currentSelection < 0)currentSelection=4;
             }
-		    if (k_down.clicked){ 
+		    if (localInputs.k_down.clicked){ 
                 ++currentSelection; 
                 if(currentSelection == 3 && !((MODEL_3DS & 6) != 0)) ++currentSelection; 
                 if(currentSelection > 4)currentSelection=0;
             }
-            if(k_decline.clicked){
+            if(localInputs.k_decline.clicked){
                 currentMenu = MENU_TITLE;
-                currentSelection = 3;
+                currentSelection = 4;
             }
-		    if(k_accept.clicked){
+		    if(localInputs.k_accept.clicked){
                 switch(currentSelection){
                     case 0:
-                        keyProp[0] = k_up.input;
-                        keyProp[1] = k_down.input;
-                        keyProp[2] = k_left.input;
-                        keyProp[3] = k_right.input;
-                        keyProp[4] = k_attack.input;
-                        keyProp[5] = k_menu.input;
-                        keyProp[6] = k_pause.input;
-                        keyProp[7] = k_accept.input;
-                        keyProp[8] = k_decline.input;
-                        keyProp[9] = k_delete.input;
-                        keyProp[10] = k_menuNext.input;
-                        keyProp[11] = k_menuPrev.input;
+                        keyProp[0] = localInputs.k_up.input;
+                        keyProp[1] = localInputs.k_down.input;
+                        keyProp[2] = localInputs.k_left.input;
+                        keyProp[3] = localInputs.k_right.input;
+                        keyProp[4] = localInputs.k_attack.input;
+                        keyProp[5] = localInputs.k_menu.input;
+                        keyProp[6] = localInputs.k_pause.input;
+                        keyProp[7] = localInputs.k_accept.input;
+                        keyProp[8] = localInputs.k_decline.input;
+                        keyProp[9] = localInputs.k_delete.input;
+                        keyProp[10] = localInputs.k_menuNext.input;
+                        keyProp[11] = localInputs.k_menuPrev.input;
                         left = true;
                         selBut = false;
                         bindOpt = false;
@@ -735,12 +586,13 @@ void tickMenu(int menu){
 				}
 			}
 		
-		    if (k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection=5;}
-		    if (k_down.clicked){ ++currentSelection; if(currentSelection > 5)currentSelection=0;}
+		    if (localInputs.k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection=6;}
+		    if (localInputs.k_down.clicked){ ++currentSelection; if(currentSelection > 6)currentSelection=0;}
 		    
-		    if(k_accept.clicked){
+		    if(localInputs.k_accept.clicked){
                 switch(currentSelection){
                     case 0:
+                        toMultiplayer = false;
                         currentMenu = MENU_LOADGAME;
                         readFiles();
                         currentSelection = 0;
@@ -748,21 +600,30 @@ void tickMenu(int menu){
                         areYouSure = false;
                     break;
                     case 1:
-                        currentMenu = MENU_MULTIPLAYER;
-                        currentSelection = 0;
+                        if(networkHost()) {
+                            toMultiplayer = true;
+                            currentMenu = MENU_MULTIPLAYER_HOST;
+                            currentSelection = 0;
+                        }
                     break;
                     case 2:
+                        networkScan();
+                        currentMenu = MENU_MULTIPLAYER_JOIN;
+                        currentSelection = 0;
+                        menuScanTimer = 0;
+                    break;
+                    case 3:
                         sprintf(pageText,"Page: %d/%d",pageNum+1,maxPageNum+1);
                         currentMenu = MENU_TUTORIAL;
                     break;
-                    case 3:
+                    case 4:
                         currentSelection = 0;
                         currentMenu = MENU_SETTINGS;
                     break;
-                    case 4: 
+                    case 5: 
                         currentMenu = MENU_ABOUT;
                     break;
-                    case 5: 
+                    case 6: 
                         quitGame = true;
                     break;
                 }
@@ -770,17 +631,17 @@ void tickMenu(int menu){
             }
         break;
         case MENU_TUTORIAL:
-            if(k_decline.clicked){ 
-                currentSelection = 2;
+            if(localInputs.k_decline.clicked){ 
+                currentSelection = 3;
                 currentMenu = MENU_TITLE;
             }
-            if(k_menuNext.clicked){
+            if(localInputs.k_menuNext.clicked){
                 if(pageNum < maxPageNum){ 
                     ++pageNum;
                     sprintf(pageText,"Page: %d/%d",pageNum+1,maxPageNum+1);
                 }
             }
-            if(k_menuPrev.clicked){
+            if(localInputs.k_menuPrev.clicked){
                 if(pageNum > 0){
                     --pageNum;
                     sprintf(pageText,"Page: %d/%d",pageNum+1,maxPageNum+1);
@@ -788,34 +649,65 @@ void tickMenu(int menu){
             }
             
         break;
-        case MENU_NPC:
-            tickNPCMenu();
-        break;
-        case MENU_MULTIPLAYER:
-            networkScan();
-        
-            if (k_decline.clicked){
+        case MENU_MULTIPLAYER_HOST:
+            if (localInputs.k_decline.clicked){
+                networkDisconnect();
+                
                 currentMenu = MENU_TITLE;
                 currentSelection = 1;
             }
-            if (k_up.clicked){ --currentSelection; if(currentSelection < 0) currentSelection = (networkGetScanCount()>0 ? networkGetScanCount()-1 : 0);}
-            if (k_down.clicked){ ++currentSelection; if(currentSelection >= networkGetScanCount()) currentSelection=0;}
-        
-            if(k_accept.clicked){
-                //TODO: Join World
-                if(networkConnect(currentSelection)) {
-                    initGame = 1;
-                    currentMenu = MENU_NONE;
-                    isRemote = true;
+            
+            if(localInputs.k_accept.clicked){
+                if(networkGetNodeCount()>1) {
+                    currentMenu = MENU_LOADGAME;
+                    readFiles();
+                    currentSelection = 0;
+                    enteringName = false;
+                    areYouSure = false;
                 }
+            }
+        break;
+        case MENU_MULTIPLAYER_JOIN:
+            if(menuScanTimer>0) {
+                menuScanTimer--;
+            } else {
+                networkScan();
+                menuScanTimer = 30;
+            }
+            if(currentSelection >= networkGetScanCount()) currentSelection=networkGetScanCount()-1;
+            if(currentSelection < 0) currentSelection = 0;
+        
+            if (localInputs.k_decline.clicked){
+                currentMenu = MENU_TITLE;
+                currentSelection = 2;
+            }
+            if (localInputs.k_up.clicked){ --currentSelection; if(currentSelection < 0) currentSelection = (networkGetScanCount()>0 ? networkGetScanCount()-1 : 0);}
+            if (localInputs.k_down.clicked){ ++currentSelection; if(currentSelection >= networkGetScanCount()) currentSelection=0;}
+        
+            if(localInputs.k_accept.clicked){
+                if(networkGetScanCount()!=0) {
+                    for(int t=0; t<10; t++) { //try to connect multiple times, because it will not work the first try every time
+                        if(networkConnect(currentSelection)) {
+                            currentMenu = MENU_MULTIPLAYER_WAIT;
+                            currentSelection = 0;
+                            break;
+                        }
+                    }
+                }
+            }
+        break;
+        case MENU_MULTIPLAYER_WAIT:
+            if (localInputs.k_decline.clicked){
+                networkDisconnect();
+                
+                currentMenu = MENU_TITLE;
+                currentSelection = 2;
             }
         break;
     }
     
 }
 
-u8 opacity = 255;
-bool rev = true;
 char scoreText[15];
 
 char * getButtonFunctionGame(int key){
@@ -917,9 +809,9 @@ void renderMenu(int menu,int xscr,int yscr){
 				sf2d_draw_rectangle(0, 0, 320, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
 			
                 drawText("Press   to select", 58, 100);
-                renderButtonIcon(k_accept.input & -k_accept.input, 128, 98, 1);
+                renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 128, 98, 1);
                 drawText("Press   to return", 58, 150);
-                renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
+                renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 128, 148, 1);
 		    sf2d_end_frame();
         break;
         case MENU_LOADGAME:
@@ -974,22 +866,22 @@ void renderMenu(int menu,int xscr,int yscr){
                     if(!areYouSure){
                         drawTextColor("Load World",100,12,0xFF3FFFFF);
                         drawText("Press   or   to scroll", 28, 50);
-                        renderButtonIcon(k_up.input & -k_up.input, 98, 48, 1);
-                        renderButtonIcon(k_down.input & -k_down.input, 160, 48, 1);
+                        renderButtonIcon(localInputs.k_up.input & -localInputs.k_up.input, 98, 48, 1);
+                        renderButtonIcon(localInputs.k_down.input & -localInputs.k_down.input, 160, 48, 1);
                         drawText("Press   to load world", (320-21*12)/2, 100);
-                        renderButtonIcon(k_accept.input & -k_accept.input, 104, 98, 1);
+                        renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 104, 98, 1);
                         drawText("Press   to return", 58, 150);
-                        renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
+                        renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 128, 148, 1);
                         if(currentSelection != worldFileCount){
                             drawText("Press   to delete",(320-17*12)/2, 200);
-                            renderButtonIcon(k_delete.input & -k_delete.input, 128, 198, 1);
+                            renderButtonIcon(localInputs.k_delete.input & -localInputs.k_delete.input, 128, 198, 1);
                         }
                     } else {
                         drawTextColor("Delete File?",88,12,0xFF3F3FFF);
                         drawText("Press   to confirm", (320-18*12)/2, 100);
-                        renderButtonIcon(k_accept.input & -k_accept.input, 122, 98, 1);
+                        renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 122, 98, 1);
                         drawText("Press   to return", 58, 150);
-                        renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
+                        renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 128, 148, 1);
                     }
                     
                 } else { // Draw the "keyboard"
@@ -1008,9 +900,9 @@ void renderMenu(int menu,int xscr,int yscr){
                     drawSizedText(guiText4,12, 140, 2);
                     
                     drawText("Press   to confirm", (320-18*12)/2, 180);
-                    renderButtonIcon(k_accept.input & -k_accept.input, 122, 178, 1);
+                    renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 122, 178, 1);
                     drawText("Press   to return", 58, 210);
-                    renderButtonIcon(k_decline.input & -k_decline.input, 128, 208, 1);
+                    renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 128, 208, 1);
                 }
             sf2d_end_frame();
         break;
@@ -1060,7 +952,7 @@ void renderMenu(int menu,int xscr,int yscr){
                         drawTextColor(msg,(400 - (strlen(msg) * 12))/2, (i * 24) + 92, color);    
                     }
                     drawText("Press   to return", 98, 190);
-                    renderButtonIcon(k_decline.input & -k_decline.input, 168, 188, 1);
+                    renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 168, 188, 1);
                     
                     if(errorBut >= 0 && errorBut < 12){
                         char errorText[30];
@@ -1088,239 +980,20 @@ void renderMenu(int menu,int xscr,int yscr){
 				
 				if(!selBut){
 					drawText("Press   to select", 58, 80);
-					renderButtonIcon(k_accept.input & -k_accept.input, 128, 78, 1);
+					renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 128, 78, 1);
 					drawText("Press   to return", 58, 130);
-					renderButtonIcon(k_decline.input & -k_decline.input, 128, 128, 1);
+					renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 128, 128, 1);
 				} else {
 					drawText("Press   or   to scroll", 28, 50);
-					renderButtonIcon(k_left.input & -k_left.input, 98, 48, 1);
-					renderButtonIcon(k_right.input & -k_right.input, 160, 48, 1);
+					renderButtonIcon(localInputs.k_left.input & -localInputs.k_left.input, 98, 48, 1);
+					renderButtonIcon(localInputs.k_right.input & -localInputs.k_right.input, 160, 48, 1);
 					drawText("Press   to unselect", 46, 100);
-					renderButtonIcon(k_accept.input & -k_accept.input, 118, 98, 1);
+					renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 118, 98, 1);
 					drawText("Press   to return", 58, 150);
-					renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
+					renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 128, 148, 1);
 				}
 		    sf2d_end_frame();
         break;
-        
-        case MENU_PAUSED:
-		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
-                if(currentLevel == 0){ 
-                    sf2d_draw_texture_part_scale(minimap[1],(-xscr/3)-256,(-yscr/3)-32,0,0,128,128,12.5,7.5);
-                    sf2d_draw_rectangle(0,0,400,240, 0xAFDFDFDF);
-                }
-	            offsetX = xscr;offsetY = yscr;
-		            renderMenuBackground(xscr,yscr);
-	            offsetX = 0;offsetY = 0;
-                renderFrame(1,1,24,14,0xFF1010AF);
-                drawText("Paused",164,32);
-                for(i = 3; i >= 0; --i){
-                    char* msg = pOptions[i];
-                    u32 color = 0xFF7F7F7F;
-                    if(i == currentSelection) color = 0xFFFFFFFF;
-					if(i == 1 && currentLevel==5) {
-						color = 0xFF7F7FFF;
-						if(i == currentSelection) color = 0xFFAFAFFF;
-					}
-                    drawTextColor(msg,(400 - (strlen(msg) * 12))/2, (i * 24) + 88, color);    
-                }
-                
-                if(pauseSaveDisplayTimer > 0) drawTextColor("Game Saved!", (400-(11*12))/2, 64,0xFF20FF20);
-                
-                if(areYouSure || areYouSureSave){
-                    if(areYouSure)renderFrame(6,5,19,10,0xFF10108F);
-                    else renderFrame(6,5,19,10,0xFF108F10);
-                    
-                    drawText("Are you sure?",122,96);
-                    drawText("   Yes", 164, 117);
-                    renderButtonIcon(k_accept.input & -k_accept.input, 166, 114, 1);
-                    drawText("   No", 170, 133);
-                    renderButtonIcon(k_decline.input & -k_decline.input, 166, 130, 1);
-                }
-                
-		    sf2d_end_frame();
-        break;  
-        case MENU_WIN:
-		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
-                if(currentLevel == 0){ 
-                    sf2d_draw_texture_part_scale(minimap[1],(-xscr/3)-256,(-yscr/3)-32,0,0,128,128,12.5,7.5);
-                    sf2d_draw_rectangle(0,0,400,240, 0xAFDFDFDF);
-                }
-	            offsetX = xscr;offsetY = yscr;
-		            renderMenuBackground(xscr,yscr);
-	            offsetX = 0;offsetY = 0;
-                renderFrame(5,3,21,12,0xFFFF1010);
-                if(!rev){ opacity+=5; if(opacity == 255) rev = true; }
-                else { opacity-=5; if(opacity == 100) rev = false; }
-                sprintf(scoreText,"Score: %d", player.p.score);
-                drawTextColor("You Win!",158,76,0x0000AFAF + (opacity << 24));
-                drawText(scoreText, 200-((strlen(scoreText)-1)*6), 100);
-                drawText("Press   to continue", 96, 150);
-                renderButtonIcon(k_attack.input & -k_attack.input, 166, 148, 1);
-                
-                //printf("0x%08X",k_attack.input & -k_attack.input);
-		    sf2d_end_frame();
-        break;  
-        case MENU_LOSE:
-		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
-                if(currentLevel == 0){ 
-                    sf2d_draw_texture_part_scale(minimap[1],(-xscr/3)-256,(-yscr/3)-32,0,0,128,128,12.5,7.5);
-                    sf2d_draw_rectangle(0,0,400,240, 0xAFDFDFDF);
-                }
-	            offsetX = xscr;offsetY = yscr;
-		            renderMenuBackground(xscr,yscr);
-	            offsetX = 0;offsetY = 0;
-                renderFrame(5,3,21,12,0xFFFF1010);
-                if(!rev){ opacity+=5; if(opacity == 255) rev = true; }
-                else { opacity-=5; if(opacity == 100) rev = false; }
-                sprintf(scoreText,"Score: %d", player.p.score);
-                drawTextColor("You DIED!",158,76,0x000000AF + (opacity << 24));
-                drawText(scoreText, 200-((strlen(scoreText)-1)*6), 100);
-                drawText("Press   to continue", 96, 150);
-                renderButtonIcon(k_attack.input & -k_attack.input, 166, 148, 1);
-                //printf("0x%08X",k_attack.input & -k_attack.input);
-		    sf2d_end_frame();
-        break;  
-        case MENU_INVENTORY:
-		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
-                if(currentLevel == 0){ 
-                    sf2d_draw_texture_part_scale(minimap[1],(-xscr/3)-256,(-yscr/3)-32,0,0,128,128,12.5,7.5);
-                    sf2d_draw_rectangle(0,0,400,240, 0xAFDFDFDF);
-                }
-	            offsetX = xscr;offsetY = yscr;
-		            renderMenuBackground(xscr,yscr);
-	            offsetX = 0;offsetY = 0;
-                renderFrame(1,1,24,14,0xFFFF1010);
-				drawTextColor("Inventory",24+1,14+1,0xFF000000);
-				drawTextColor("Inventory",24,14,0xFF6FE2E2);
-                renderItemList(player.p.inv, 1,1,24,14, curInvSel);
-		    sf2d_end_frame();
-        break;  
-		case MENU_ARMOR:
-		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
-                if(currentLevel == 0){ 
-                    sf2d_draw_texture_part_scale(minimap[1],(-xscr/3)-256,(-yscr/3)-32,0,0,128,128,12.5,7.5);
-                    sf2d_draw_rectangle(0,0,400,240, 0xAFDFDFDF);
-                }
-	            offsetX = xscr;offsetY = yscr;
-		            renderMenuBackground(xscr,yscr);
-	            offsetX = 0;offsetY = 0;
-                renderFrame(1,1,24,14,0xFFFF1010);
-				drawTextColor("Armor",24+1,14+1,0xFF000000);
-				drawTextColor("Armor",24,14,0xFF6FE2E2);
-                renderArmorList(player.p.inv, 1,1,24,14, 1);
-		    sf2d_end_frame();
-        break;  
-        case MENU_CRAFTING:
-		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
-                if(currentLevel == 0){ 
-                    sf2d_draw_texture_part_scale(minimap[1],(-xscr/3)-256,(-yscr/3)-32,0,0,128,128,12.5,7.5);
-                    sf2d_draw_rectangle(0,0,400,240, 0xAFDFDFDF);
-                }
-	            offsetX = xscr;offsetY = yscr;
-		            renderMenuBackground(xscr,yscr);
-	            offsetX = 0;offsetY = 0;
-	            
-                renderFrame(15,1,24,4,0xFFFF1010);
-				drawTextColor("Have",248+1,14+1,0xFF000000);
-				drawTextColor("Have",248,14,0xFF6FE2E2);
-                renderFrame(15,5,24,14,0xFFFF1010);
-				drawTextColor("Cost",248+1,78+1,0xFF000000);
-				drawTextColor("Cost",248,78,0xFF6FE2E2);
-                renderFrame(1,1,14,14,0xFFFF1010);
-				drawTextColor(currentCraftTitle,24+1,14+1,0xFF000000);
-				drawTextColor(currentCraftTitle,24,14,0xFF6FE2E2);
-                renderRecipes(currentRecipes, 1, 1, 14, 14, curInvSel);
-                
-                Recipe* rec = &currentRecipes->recipes[curInvSel];
-                renderItemIcon(rec->itemResult,rec->itemAmountLevel,128,16);
-                char craftText[12];
-                sprintf(craftText,"%d",countItemInv(rec->itemResult,rec->itemAmountLevel, player.p.inv));
-                drawText(craftText,274,34);
-                
-                if(rec->numOfCosts > 0){
-                    int i;
-                    for(i = 0; i < rec->numOfCosts; i++){
-                        int amnt = countItemInv(rec->costs[i].costItem,0, player.p.inv);
-                        int ttlCst = rec->costs[i].costAmount;
-                        int col = 0xFFFFFFFF; if(amnt<ttlCst) col = 0xFF7F7F7F;
-                        renderItemIcon(rec->costs[i].costItem,1,128,48+(i*8));
-                        sprintf(craftText,"%d/%d",amnt,ttlCst);
-                        drawTextColor(craftText,274,96+(i*18),col);
-                    }
-                }
-                
-		    sf2d_end_frame();
-        break;  
-		
-		case MENU_CONTAINER:
-		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
-                if(currentLevel == 0){ 
-                    sf2d_draw_texture_part_scale(minimap[1],(-xscr/3)-256,(-yscr/3)-32,0,0,128,128,12.5,7.5);
-                    sf2d_draw_rectangle(0,0,400,240, 0xAFDFDFDF);
-                }
-	            offsetX = xscr;offsetY = yscr;
-		            renderMenuBackground(xscr,yscr);
-		        if (curChestEntity->entityFurniture.r == 1){ offsetX = 48; offsetY = 0;}
-		        else {offsetX = 0;offsetY = 0;}
-		        
-		        renderFrame(1,1,15,14,0xFFFF1010);
-				drawTextColor("Chest",24+1,14+1,0xFF000000);
-				drawTextColor("Chest",24,14,0xFF6FE2E2);
-		        renderItemList(curChestEntity->entityFurniture.inv,1,1,15,14,
-                curChestEntity->entityFurniture.r == 0 ? curInvSel : -curChestEntity->entityFurniture.oSel - 1);
-		        renderFrame(16,1,30,14,0xFFFF1010);
-				drawTextColor("Inventory",264+1,14+1,0xFF000000);
-				drawTextColor("Inventory",264,14,0xFF6FE2E2);
-		        renderItemList(player.p.inv,16,1,30,14,
-                curChestEntity->entityFurniture.r == 1 ? curInvSel : -curChestEntity->entityFurniture.oSel - 1);
-		        offsetX = 0;offsetY = 0;
-		    sf2d_end_frame();
-        break;
-		
-		case MENU_DUNGEON:
-			sf2d_start_frame(GFX_TOP, GFX_LEFT);
-                if(currentLevel == 0){ 
-                    sf2d_draw_texture_part_scale(minimap[1],(-xscr/3)-256,(-yscr/3)-32,0,0,128,128,12.5,7.5);
-                    sf2d_draw_rectangle(0,0,400,240, 0xAFDFDFDF);
-                }
-	            offsetX = xscr;offsetY = yscr;
-		            renderMenuBackground(xscr,yscr);
-	            offsetX = 0;offsetY = 0;
-                renderFrame(1,1,24,14,0xFFFF1010);
-				if(currentLevel!=5) {
-					drawTextColor("Dungeon Entrance",24+1,14+1,0xFF000000);
-					drawTextColor("Dungeon Entrance",24,14,0xFF6FE2E2);
-					
-					drawText("Warning: ", 32, 32);
-					drawText("You need a Dungeon Key to   ", 32, 56);
-					drawText("enter and cannot save while ", 32, 72);
-					drawText("being in the Dungeon!       ", 32, 88);
-					drawText("After leaving you will need ", 32, 112);
-					drawText("a new Dungeon Key for       ", 32, 128);
-					drawText("entering another Dungeon!   ", 32, 144);
-					
-					drawText("   Enter", 148, 171);
-				} else {
-					drawTextColor("Dungeon Exit",24+1,14+1,0xFF000000);
-					drawTextColor("Dungeon Exit",24,14,0xFF6FE2E2);
-					
-					drawText("Warning: ", 32, 32);
-					drawText("The Dungeon and everything  ", 32, 56);
-					drawText("in it will disappear when   ", 32, 72);
-					drawText("you leave it!               ", 32, 88);
-					drawText("You will need a new Dungeon ", 32, 112);
-					drawText("Key for entering another    ", 32, 128);
-					drawText("Dungeon again!              ", 32, 144);
-					
-					drawText("   Leave", 148, 171);
-				}
-				
-                renderButtonIcon(k_accept.input & -k_accept.input, 150, 168, 1);
-                drawText("   Stay", 148, 195);
-                renderButtonIcon(k_decline.input & -k_decline.input, 150, 192, 1);
-		    sf2d_end_frame();
-		break;
 		
         case MENU_ABOUT:
 		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
@@ -1352,7 +1025,7 @@ void renderMenu(int menu,int xscr,int yscr){
 				drawSizedTextColor("generic-8-bit-jrpg-soundtrack",48,180,1.0,0xFF20FF20);
 				
                 drawText("Press   to return", 58, 220);
-                renderButtonIcon(k_decline.input & -k_decline.input, 128, 218, 1);
+                renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 128, 218, 1);
 		    sf2d_end_frame();
         break;
         case MENU_SETTINGS:
@@ -1401,9 +1074,9 @@ void renderMenu(int menu,int xscr,int yscr){
                         break;
                 }
                 drawText("Press   to select", 58, 100);
-                renderButtonIcon(k_accept.input & -k_accept.input, 128, 98, 1);
+                renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 128, 98, 1);
                 drawText("Press   to return", 58, 150);
-                renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
+                renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 128, 148, 1);
 		    sf2d_end_frame();
         break;
         case MENU_TITLE:
@@ -1413,20 +1086,20 @@ void renderMenu(int menu,int xscr,int yscr){
 				//map BG
 				if(menuHasMapLoaded) {
 					offsetX = (int) mxscr; offsetY = (int) myscr;
-						renderBackground((int) mxscr, (int) myscr);
+						renderBackground(1, (int) mxscr, (int) myscr);
 					offsetX = 0; offsetY = 0;
 					
 					sf2d_draw_rectangle(0, 0, 400, 240, 0xAA0C0C0C); //You might think "real" black would be better, but it actually looks better that way
 				}
 			
-		        renderTitle(76,16);
+		        renderTitle(76,8);
 		    
-		        for(i = 5; i >= 0; --i){
+		        for(i = 6; i >= 0; --i){
                     char* msg = options[i];
                     u32 color = 0xFF7F7F7F;
                     if(i == currentSelection) color = 0xFFFFFFFF;
-					drawSizedTextColor(msg,((200 - (strlen(msg) * 8))/2) + 1, (((8 + i) * 20 - 58) >> 1) + 1,2.0, 0xFF000000);   
-                    drawSizedTextColor(msg,(200 - (strlen(msg) * 8))/2, ((8 + i) * 20 - 58) >> 1,2.0, color);    
+					drawSizedTextColor(msg,((200 - (strlen(msg) * 8))/2) + 1, (((8 + i) * 20 - 74) >> 1) + 1,2.0, 0xFF000000);   
+                    drawSizedTextColor(msg,(200 - (strlen(msg) * 8))/2, ((8 + i) * 20 - 74) >> 1,2.0, color);    
                 }
                 
 		        drawText(versionText,2,225);
@@ -1438,7 +1111,7 @@ void renderMenu(int menu,int xscr,int yscr){
 				//map BG
 				if(menuHasMapLoaded) {
 					offsetX = (int) mxscr + 20; offsetY = (int) myscr + 120;
-						renderBackground((int) mxscr + 20, (int) myscr + 120);
+						renderBackground(1, (int) mxscr + 20, (int) myscr + 120);
 					offsetX = 0; offsetY = 0;
 					
 					sf2d_draw_rectangle(0, 0, 320, 240, 0xAA0C0C0C); //You might think "real" black would be better, but it actually looks better that way
@@ -1448,9 +1121,13 @@ void renderMenu(int menu,int xscr,int yscr){
 		        switch(currentSelection){
                     case 0: // "Start Game"
                         break;
-                    case 1: // "Join Game"
+                    case 1: // "Host Game"
+                        drawTextColor("Host local multiplayer",(320 - (22 * 12))/2,24,0xFF7FFFFF);
                         break;
-                    case 2: // "How To Play"
+                    case 2: // "Join Game"
+                        drawTextColor("Join local multiplayer",(320 - (22 * 12))/2,24,0xFF7FFFFF);
+                        break;
+                    case 3: // "How To Play"
                         startX = 72;startY = 54;
                         render16(startX,startY,96,208,0);//C-PAD
                         startX = 72;startY = 37;
@@ -1467,11 +1144,11 @@ void renderMenu(int menu,int xscr,int yscr){
                         render16(startX,startY,160,208,0);//C-PAD right
                         drawTextColor("Learn the basics",64,24,0xFF7FFFFF);
                         break;
-                    case 3: // "Settings"
+                    case 4: // "Settings"
                         drawTextColor("Modify the game's feel",(320 - (22 * 12))/2,24,0xFF7FFFFF);
                         renderc(48,48,0,112,64,32,0);
                         break;
-                    case 4: // "About"
+                    case 5: // "About"
                         drawTextColor("Who made this game?",(320 - (19 * 12))/2,24,0xFF7FFFFF);
                         
                         // Secret code ;)
@@ -1487,27 +1164,48 @@ void renderMenu(int menu,int xscr,int yscr){
                         //drawSizedText("(Totally not a secret code or anything)",4,160,1);
                          
                         break;
-                    case 5: // "Exit"
-                        drawTextColor("Exit to the homebrew menu",(320 - (25 * 12))/2,24,0xFF7FFFFF);
+                    case 6: // "Exit"
+                        drawTextColor("Exit to the home menu",(320 - (21 * 12))/2,24,0xFF7FFFFF);
                         drawTextColor("(bye-bye)",(320 - (9 * 12))/2,100,0xFF7FFFFF);
                         break;
                 }
 		    sf2d_end_frame();
         break;
-        case MENU_NPC:
-		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
-                if(currentLevel == 0){ 
-                    sf2d_draw_texture_part_scale(minimap[1],(-xscr/3)-256,(-yscr/3)-32,0,0,128,128,12.5,7.5);
-                    sf2d_draw_rectangle(0,0,400,240, 0xAFDFDFDF);
+        case MENU_MULTIPLAYER_HOST:
+            sf2d_start_frame(GFX_TOP, GFX_LEFT);
+                sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+                
+                networkUpdateStatus();
+                drawText("Connected Players",98,8);
+                int j = 0;
+                int lastj = 0;
+                for(i = 0; i<networkGetNodeCount(); i++) {
+                    
+                    for(j = lastj+1; j <= UDS_MAXNODES; j++) {
+                        if(networkIsNodeConnected(j)) {
+                            char * text = malloc((50+8+1) * sizeof(char));
+                            memset(text, 0, (50+8+1) * sizeof(char));
+                            networkGetNodeName(j, text);
+                            
+                            drawText(text,(400-(strlen(text)*12))/2,i*26+32);
+                            
+                            free(text);
+                            lastj = j;
+                            break;
+                        }
+                    }
                 }
-	            offsetX = xscr;offsetY = yscr;
-		            renderMenuBackground(xscr,yscr);
-		        offsetX = 0;offsetY = 0;
-	            
-		        renderNPCMenu(xscr, yscr);
-		    sf2d_end_frame();
+            sf2d_end_frame();
+            sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+                sf2d_draw_rectangle(0, 0, 320, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+                
+                drawText("Press   to start game", (320-21*12)/2, 100);
+                renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 104, 98, 1);
+                drawText("Press   to return", 58, 150);
+                renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 128, 148, 1);
+            sf2d_end_frame();
         break;
-        case MENU_MULTIPLAYER:
+        case MENU_MULTIPLAYER_JOIN:
             sf2d_start_frame(GFX_TOP, GFX_LEFT);
                 sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
                 
@@ -1534,12 +1232,48 @@ void renderMenu(int menu,int xscr,int yscr){
                 
                 drawTextColor("Searching for Worlds",40,12,0xFF3FFFFF);
                 drawText("Press   or   to scroll", 28, 50);
-                renderButtonIcon(k_up.input & -k_up.input, 98, 48, 1);
-                renderButtonIcon(k_down.input & -k_down.input, 160, 48, 1);
+                renderButtonIcon(localInputs.k_up.input & -localInputs.k_up.input, 98, 48, 1);
+                renderButtonIcon(localInputs.k_down.input & -localInputs.k_down.input, 160, 48, 1);
                 drawText("Press   to join world", (320-21*12)/2, 100);
-                renderButtonIcon(k_accept.input & -k_accept.input, 104, 98, 1);
+                renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 104, 98, 1);
                 drawText("Press   to return", 58, 150);
-                renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
+                renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 128, 148, 1);
+            sf2d_end_frame();
+        break;
+        case MENU_MULTIPLAYER_WAIT:
+            sf2d_start_frame(GFX_TOP, GFX_LEFT);
+                sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+                
+                networkUpdateStatus();
+                drawText("Connected to",(400-12*12)/2,1*26+32);
+                if(networkIsNodeConnected(1)) {
+                    char * text = malloc((50+8+1) * sizeof(char));
+                    memset(text, 0, (50+8+1) * sizeof(char));
+                    networkGetNodeName(1, text);
+                    
+                    drawText(text,(400-(strlen(text)*12))/2,2*26+32);
+                    
+                    free(text);
+                }
+                drawText("Waiting for host to start",(400-25*12)/2,3*26+32);
+            sf2d_end_frame();
+            sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+                sf2d_draw_rectangle(0, 0, 320, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+                
+                drawText("Awaiting game start..", (320-21*12)/2, 100);
+                drawText("Press   to return", 58, 150);
+                renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 128, 148, 1);
+            sf2d_end_frame();
+        break;
+        case MENU_LOADING:
+            sf2d_start_frame(GFX_TOP, GFX_LEFT);
+                sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+                
+            sf2d_end_frame();
+            sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+                sf2d_draw_rectangle(0, 0, 320, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+                
+                drawText("Loading game...", (320-15*12)/2, 100);
             sf2d_end_frame();
         break;
     }

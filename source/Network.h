@@ -3,45 +3,19 @@
 #include <3ds.h>
 
 #define NETWORK_WLANCOMMID 0x11441850
-#define NETWORK_PASSPHRASE "Minicraft3DS localplay passphrase"
+#define NETWORK_PASSPHRASE "minicraft3dsLP"
 #define NETWORK_CHANNEL 1
 
 #define NETWORK_RECVBUFSIZE UDS_DEFAULT_RECVBUFSIZE
 
-#define NETWORK_MAXPLAYERS UDS_MAXNODES
+#define NETWORK_MAXDATASIZE 1024
+#define NETWORK_SENDBUFFERSIZE ((NETWORK_MAXDATASIZE+256)*10)
 
-//packet type ids
-#define PACKET_REQUEST_MAPDATA 1
-#define PACKET_MAPDATA 2
+#define NETWORK_STACKSIZE (8*1024)
 
-//TODO: Every other packet struct should start with a u8 type to match this
-typedef struct {
-	u8 type;
-} packetAnalyze;
+#define NETWORK_MAXPLAYERS 8
 
-typedef struct {
-    u8 type;
-    
-    u8 level;
-} packetRequestMapData;
-
-typedef struct {
-    u8 type;
-    
-    u8 level;
-    u8 offset; //-> data is at offset*128 to offset*128+127
-    
-    u8 map[128];
-    u8 data[128];
-} packetMapData;
-
-typedef struct {
-	union {
-		packetAnalyze analyze;
-		packetRequestMapData requestMapData;
-        packetMapData mapData;
-	};
-} networkPacket;
+void *networkWriteBuffer;
 
 void networkInit();
 void networkExit();
@@ -49,15 +23,22 @@ void networkExit();
 bool networkAvailable();
 
 bool networkHost();
+void networkHostStopConnections();
 void networkScan();
 int networkGetScanCount();
-bool networkGetScanName(char *name, int pos); //TODO: Name should be long enough to handle all allowed names (char[256])
+bool networkGetScanName(char *name, int pos);
 bool networkConnect(int pos);
 void networkDisconnect();
 
-bool networkConnected();
-bool networkIsServer();
+void networkStart();
 
-void networkSend(networkPacket *packet, size_t size); //TODO: Should this be a pointer? Calling function needs to cleanup itself
-void networkSendTo(networkPacket *packet, size_t size, u16 reciever); //TODO: Should this be a pointer? Calling function needs to cleanup itself
-void networkRecieve(); //TODO: Should recieve actually handle all the packets or just return them?
+void networkUpdateStatus();
+bool networkConnected();
+
+int networkGetNodeCount();
+u16 networkGetLocalNodeID();
+bool networkIsNodeConnected(u16 id);
+bool networkGetNodeName(u16 id, char *name);
+
+void networkSend(void *packet, size_t size);
+void networkSendWaitFlush();

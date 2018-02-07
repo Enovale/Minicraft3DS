@@ -1,9 +1,13 @@
 #include "texturepack.h"
 
-#define dir_delimter '/'
-#define MAX_FILENAME 256
-#define READ_SIZE 9216
+#include "ZipHelper.h"
 
+#define MAX_FILENAME 256
+
+bool texturepackUseDefaultIcons = true;
+bool texturepackUseDefaultPlayer = true;
+bool texturepackUseDefaultFont = true;
+bool texturepackUseDefaultBottom = true;
 
 void toLowerString(char * str){
     int i;
@@ -31,136 +35,66 @@ int getTexturePackComment(char * filename, char * cmmtBuf){
     return 0;
 }
 
-int loadTexturePack(char * filename){
+int loadTexture(char * filename) {
+    char lowerFilename[MAX_FILENAME];
+    strcpy(lowerFilename,filename);
+    toLowerString(lowerFilename);
     
-    bool useDefaultIcons = true;
-    bool useDefaultFont = true;
-    bool useDefaultBottom = true;
-
-    // Open the zip file
-    unzFile *zipfile = unzOpen(filename);
-    if ( zipfile == NULL ) return 1; // Error: ZipFile could not be opened.
-    
-    // Get info about the zip file
-    unz_global_info global_info;
-    if (unzGetGlobalInfo(zipfile, &global_info ) != UNZ_OK )
-    {
-        unzClose( zipfile );
-        return 2; // Error: Could not read global info
-    }
-
-    // Buffer to hold data read from the zip file.
-    char read_buffer[ READ_SIZE ];
-
-    // Loop to extract all files
-    uLong i;
-    for ( i = 0; i < global_info.number_entry; ++i )
-    {
-        // Get info about current file.
-        unz_file_info file_info;
-        char filename[ MAX_FILENAME ];
-        if (unzGetCurrentFileInfo(zipfile,&file_info,filename,MAX_FILENAME,NULL, 0, NULL, 0 ) != UNZ_OK ){
-            unzClose( zipfile );
-            return 3; // Error: Could not read file info
+    if(strcmp(lowerFilename, "icons.png") == 0){
+        if(sfil_load_PNG_file(filename, SF2D_PLACE_RAM) == NULL){
+            return 0;
         }
-
-        // Check if this entry is NOT a directory or file.
-        const size_t filename_length = strlen( filename );
-        if ( filename[ filename_length-1 ] != dir_delimter ){
-            if ( unzOpenCurrentFile( zipfile ) != UNZ_OK )
-            {
-                unzClose( zipfile );
-                return 4;
-            }
-
-            // Open a file to write out the data.
-            FILE * out = fopen(filename, "wb" );
-            if ( out == NULL )
-            {
-                unzCloseCurrentFile( zipfile );
-                unzClose( zipfile );
-                return 5;
-            }
-
-            int error = UNZ_OK;
-            do    
-            {
-                error = unzReadCurrentFile( zipfile, read_buffer, READ_SIZE );
-                if ( error < 0 )
-                {
-                    //printf( "error %d\n", error );
-                    unzCloseCurrentFile( zipfile );
-                    unzClose( zipfile );
-                    return 6;
-                }
-
-                // Write data to file.
-                if ( error > 0 )
-                {
-                    fwrite( read_buffer, error, 1, out ); // You should check return of fwrite...
-                }
-            } while ( error > 0 );
-
-            fclose(out);
-            
-            char lowerFilename[MAX_FILENAME];
-            strcpy(lowerFilename,filename);
-            toLowerString(lowerFilename);
-            
-            if(strcmp(lowerFilename,"icons.png") == 0){
-                if(sfil_load_PNG_file(filename, SF2D_PLACE_RAM) == NULL){
-                    unzCloseCurrentFile( zipfile );
-                    unzClose( zipfile );
-                    return 7;
-                }
-	           icons = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
-	           
-			   reloadColors();
-	           
-	           useDefaultIcons = false;
-
-            } else if(strcmp(lowerFilename,"font.png") == 0){
-                if(sfil_load_PNG_file(filename, SF2D_PLACE_RAM) == NULL){
-                    unzCloseCurrentFile( zipfile );
-                    unzClose( zipfile );
-                    return 7;
-                }
-	           font = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
-	           useDefaultFont = false;
-            } else if(strcmp(lowerFilename,"bottombg.png") == 0){
-                if(sfil_load_PNG_file(filename, SF2D_PLACE_RAM) == NULL){
-                    unzCloseCurrentFile( zipfile );
-                    unzClose( zipfile );
-                    return 7;
-                }
-	           bottombg = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
-	           useDefaultBottom = false;
-            }
-            
-	        remove(filename);
+        
+        icons = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+        reloadColors();
+       
+        texturepackUseDefaultIcons = false;
+    } else if(strcmp(lowerFilename, "player.png") == 0){
+        if(sfil_load_PNG_file(filename, SF2D_PLACE_RAM) == NULL){
+            return 0;
         }
-
-        unzCloseCurrentFile( zipfile );
-
-        // Go the the next entry listed in the zip file.
-        if ( ( i+1 ) < global_info.number_entry )
-        {
-            if ( unzGoToNextFile( zipfile ) != UNZ_OK )
-            {
-                unzClose( zipfile );
-                return 7;
-            }
+        
+        playerSprites = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+        
+        texturepackUseDefaultPlayer = false;
+    } else if(strcmp(lowerFilename, "font.png") == 0){
+        if(sfil_load_PNG_file(filename, SF2D_PLACE_RAM) == NULL){
+            return 0;
         }
+        
+        font = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+        
+        texturepackUseDefaultFont = false;
+    } else if(strcmp(lowerFilename, "bottombg.png") == 0){
+        if(sfil_load_PNG_file(filename, SF2D_PLACE_RAM) == NULL){
+            return 0;
+        }
+        
+        bottombg = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+        
+        texturepackUseDefaultBottom = false;
     }
     
-    if(useDefaultIcons){
+    return 0;
+}
+
+int loadTexturePack(char * filename) {
+    texturepackUseDefaultIcons = true;
+    texturepackUseDefaultPlayer = true; 
+    texturepackUseDefaultFont = true;
+    texturepackUseDefaultBottom = true;
+
+    if(unzipAndLoad(filename, &loadTexture, NULL, ZIPHELPER_CLEANUP_FILES)!=0) {
+        return 1;
+    }
+    
+    if(texturepackUseDefaultIcons){
         icons = sfil_load_PNG_buffer(icons2_png, SF2D_PLACE_RAM);
         reloadColors();
     }
-    if(useDefaultFont) font = sfil_load_PNG_buffer(Font_png, SF2D_PLACE_RAM);
-    if(useDefaultBottom) bottombg = sfil_load_PNG_buffer(bottombg_png, SF2D_PLACE_RAM);
-
-    unzClose( zipfile );
+    if(texturepackUseDefaultPlayer) playerSprites = sfil_load_PNG_buffer(player_png, SF2D_PLACE_RAM);
+    if(texturepackUseDefaultFont) font = sfil_load_PNG_buffer(Font_png, SF2D_PLACE_RAM);
+    if(texturepackUseDefaultBottom) bottombg = sfil_load_PNG_buffer(bottombg_png, SF2D_PLACE_RAM);
 
     return 0;
 }

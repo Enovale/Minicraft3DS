@@ -1,32 +1,25 @@
 #pragma once
+
 #include <stdlib.h>
 #include <stdbool.h>
-#include "render.h"
+#include "QuestsData.h"
+#include "Player.h"
 #include "Crafting.h"
 
 #define NPC_MENU_TALK 0
-
-typedef struct {
-    int currentQuest;
-    bool currentQuestDone;
-} Questline;
-
-typedef struct {
-    int size;
-    Questline * questlines;
-} QuestlineManager;
-
-QuestlineManager questManager;
 
 RecipeManager priestTrades;
 RecipeManager farmerTrades;
 RecipeManager dwarfTrades;
 
-void initQuests();
-void resetQuests();
-void freeQuests();
+void initTrades();
+void freeTrades();
 
-void openNPCMenu(int npc);
+void initQuests(QuestlineManager *questManager);
+void resetQuests(QuestlineManager *questManager);
+void freeQuests(QuestlineManager *questManager);
 
-void renderNPCMenu(int xscr, int yscr);
-void tickNPCMenu();
+void resetNPCMenuData(NPC_MenuData *data);
+void openNPCMenu(PlayerData *pd, int npc);
+void tickNPCMenu(PlayerData *pd);
+void renderNPCMenu(NPC_MenuData *data);

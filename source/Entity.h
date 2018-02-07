@@ -27,6 +27,8 @@
 
 typedef struct Entity Entity;
 
+typedef struct _plrd PlayerData; //in order to not include Player.h and cause all sorts of problems
+
 typedef struct {
     s8 ax;
     s8 ay;
@@ -50,8 +52,7 @@ typedef struct {
 	int swimBreathTimer;
 	int speedTimer;
 	int score;
-    Inventory* inv;
-    Item* activeItem;
+    PlayerData *data;
 } Player;
 
 
@@ -69,9 +70,8 @@ typedef struct {
 typedef struct {
     s16 itemID;
     bool active;
-    s8 r; // light radius for lantern. window select for chests.
+    s8 r; // light radius for lantern.
     Inventory* inv; // Points to chest inventory.
-    s16 oSel; // other selection inside the chest inv.
 } EntityFurniture;
 
 typedef struct {
@@ -219,18 +219,16 @@ struct Entity {
 typedef struct {
     Entity entities[6][1000];
     s16 lastSlot[6];
-    Inventory invs[301];//1 for the player, 300 for chests.
+    Inventory invs[300];
     s16 nextInv;
 } EntityManager;
 
 EntityManager eManager;
 Entity nullEntity;
-s8 currentLevel;
 
 
-double gaussrand();
 Entity newItemEntity(Item item, int x, int y, int level);
-Entity newFurnitureEntity(int itemID,Inventory * invPtr, int x, int y, int level);
+Entity newFurnitureEntity(int itemID, Inventory * invPtr, int x, int y, int level);
 Entity newPassiveEntity(int type, int x, int y, int level);
 Entity newZombieEntity(int lvl, int x, int y, int level);
 Entity newSkeletonEntity(int lvl, int x, int y, int level);

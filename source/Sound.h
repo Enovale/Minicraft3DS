@@ -13,7 +13,10 @@ typedef struct {
 void loadSound(Sound * snd, char * filename);
 void playSound(Sound snd);
 
-void playMusic(Sound snd);
+void playSoundPositioned(Sound snd, s8 level, int x, int y);
+void setListenerPosition(s8 level, int x, int y);
+
+void playMusic(Sound *snd);
 void updateMusic(int lvl, int time);
 void stopMusic();
 

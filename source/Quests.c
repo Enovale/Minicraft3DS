@@ -1,27 +1,9 @@
 #include "Quests.h"
 
-u8 currentNPC;
+#include "Globals.h"
+#include "Render.h"
 
-int currentNPCMenu;
-int currentNPCVal;
-
-int currentTalkSel;
-bool currentTalkDone;
-int currentTalkOptions;
-char * currentTalkOption0;
-char * currentTalkOption1;
-char * currentTalkOption2;
-char * currentTalk0;
-char * currentTalk1;
-char * currentTalk2;
-char * currentTalk3;
-char * currentTalk4;
-char * currentTalk5;
-
-void initQuests() {
-    questManager.size = 2;
-    questManager.questlines = (Questline*)malloc(sizeof(Questline) * (questManager.size));
-    
+void initTrades() {
     priestTrades.size = 5;
     priestTrades.recipes = (Recipe*)malloc(sizeof(Recipe) * (priestTrades.size));
     priestTrades.recipes[0] = defineRecipe(ITEM_DUNGEON_KEY,1,1,ITEM_MAGIC_DUST,2);
@@ -47,335 +29,364 @@ void initQuests() {
     //TODO: Trade Dragon Scales for something really nice
 }
 
-void resetQuests() {
-    int i;
-    for(i=0; i<questManager.size; ++i) {
-        questManager.questlines[i].currentQuest = 0;
-        questManager.questlines[i].currentQuestDone = false;
-    }
-}
-
-void freeQuests() {
-    free(questManager.questlines);
+void freeTrades() {
     free(priestTrades.recipes);
     free(farmerTrades.recipes);
     free(dwarfTrades.recipes);
 }
 
-void openNPCMenu(int npc) {
-    currentNPC = npc;
-    currentNPCVal = 0;
-    currentMenu = MENU_NPC;
-    currentNPCMenu = NPC_MENU_TALK;
+void initQuests(QuestlineManager *questManager) {
+    if(questManager->questlines!=NULL) {
+        freeQuests(questManager);
+    }
     
-    currentTalkSel = 0;
-    currentTalkDone = false;
-    currentTalkOptions = 1;
-    currentTalkOption0 = "Bye";
-    currentTalkOption1 = "";
-    currentTalkOption2 = "";
-    currentTalk0 = "";
-    currentTalk1 = "";
-    currentTalk2 = "";
-    currentTalk3 = "";
-    currentTalk4 = "";
-    currentTalk5 = "";
+    questManager->size = 2;
+    questManager->questlines = (Questline*)malloc(sizeof(Questline) * (questManager->size));
+}
+
+void resetQuests(QuestlineManager *questManager) {
+    int i;
+    for(i=0; i<questManager->size; ++i) {
+        questManager->questlines[i].currentQuest = 0;
+        questManager->questlines[i].currentQuestDone = false;
+    }
+}
+
+void freeQuests(QuestlineManager *questManager) {
+    free(questManager->questlines);
+    questManager->questlines = NULL;
+}
+
+void resetNPCMenuData(NPC_MenuData *data) {
+    data->currentNPC = 0;
+    data->currentNPCMenu = 0;
+    data->currentNPCVal = 0;
+    
+    data->currentTalkSel = 0;
+    data->currentTalkDone = false;
+    data->currentTalkOptions = 0;
+    
+    data->currentTalkOption0 = "";
+    data->currentTalkOption1 = "";
+    data->currentTalkOption2 = "";
+    data->currentTalk0 = "";
+    data->currentTalk1 = "";
+    data->currentTalk2 = "";
+    data->currentTalk3 = "";
+    data->currentTalk4 = "";
+    data->currentTalk5 = "";
+}
+
+void openNPCMenu(PlayerData *pd, int npc) {
+    pd->ingameMenu = MENU_NPC;
+    
+    NPC_MenuData *data = &(pd->npcMenuData);
+    QuestlineManager *questManager = &(pd->questManager);
+    
+    data->currentNPC = npc;
+    data->currentNPCVal = 0;
+    data->currentNPCMenu = NPC_MENU_TALK;
+    
+    data->currentTalkSel = 0;
+    data->currentTalkDone = false;
+    data->currentTalkOptions = 1;
+    data->currentTalkOption0 = "Bye";
+    data->currentTalkOption1 = "";
+    data->currentTalkOption2 = "";
+    data->currentTalk0 = "";
+    data->currentTalk1 = "";
+    data->currentTalk2 = "";
+    data->currentTalk3 = "";
+    data->currentTalk4 = "";
+    data->currentTalk5 = "";
     
     //TODO: Handle upon currentNPC as well as the fitting quest progress
-    switch(currentNPC) {
+    switch(data->currentNPC) {
     case NPC_GIRL:
-		currentTalkOptions = 2;
-		currentTalkOption0 = "Trade";
-		currentTalkOption1 = "What do you do?";
-		
-		currentTalk0 = "Hello!";
-        currentTalk1 = "It gets a bit lonely here.";
-        currentTalk2 = "I hope you stay...";
-        currentTalk3 = "But if you don't thats fine.";
-        currentTalk4 = "sigh";
-        currentTalk5 = "";
+        data->currentTalkOptions = 1;
+        data->currentTalkOption0 = "...";
+        
+        data->currentTalk0 = "Hello?";
+        data->currentTalk1 = "I have a feeling of having";
+        data->currentTalk2 = "forgotten something very";
+        data->currentTalk3 = "important.";
+        data->currentTalk4 = "Hopefully I will remember";
+        data->currentTalk5 = "it soon...";
     break;
     case NPC_PRIEST:
-        currentTalkOptions = 3;
-        currentTalkOption1 = "Trade";
-        currentTalkOption2 = "Why are you so few?";
+        data->currentTalkOptions = 3;
+        data->currentTalkOption1 = "Trade";
+        data->currentTalkOption2 = "Why are you so few?";
         
-        currentTalk0 = "Welcome to our small village";
-        currentTalk1 = "I am the leader of our group.";
-        currentTalk2 = "If you have anything usefull";
-        currentTalk3 = "for us I might be able to";
-        currentTalk4 = "provide something nice in";
-        currentTalk5 = "exchange.";
+        data->currentTalk0 = "Welcome to our small village";
+        data->currentTalk1 = "I am the leader of our group.";
+        data->currentTalk2 = "If you have anything usefull";
+        data->currentTalk3 = "for us I might be able to";
+        data->currentTalk4 = "provide something nice in";
+        data->currentTalk5 = "exchange.";
     break;
     case NPC_FARMER:
-        currentTalkOptions = 2;
-        currentTalkOption0 = "Maybe some other time";
-        currentTalkOption1 = "Trade";
+        data->currentTalkOptions = 2;
+        data->currentTalkOption0 = "Maybe some other time";
+        data->currentTalkOption1 = "Trade";
         
-        currentTalk0 = "Hello friend!";
-        currentTalk1 = "Nice seeing somebody else";
-        currentTalk2 = "visit my little farm.";
-        currentTalk3 = "Interested in buying some";
-        currentTalk4 = "fresh farm goods?";
-        currentTalk5 = "";
+        data->currentTalk0 = "Hello friend!";
+        data->currentTalk1 = "Nice seeing somebody else";
+        data->currentTalk2 = "visit my little farm.";
+        data->currentTalk3 = "Interested in buying some";
+        data->currentTalk4 = "fresh farm goods?";
+        data->currentTalk5 = "";
     break;
     case NPC_LIBRARIAN:
-        currentTalkOptions = 2;
-        currentTalkOption0 = "Nothing";
-        currentTalkOption1 = "What are you doing here?";
-        if(questManager.questlines[1].currentQuest==1) {
-            currentTalkOptions = 3;
-            currentTalkOption2 = "Dwarvish language";
+        data->currentTalkOptions = 2;
+        data->currentTalkOption0 = "Nothing";
+        data->currentTalkOption1 = "What are you doing here?";
+        if(questManager->questlines[1].currentQuest==1) {
+            data->currentTalkOptions = 3;
+            data->currentTalkOption2 = "Dwarvish language";
         }
         
-        currentTalk0 = "Oh hello?";
-        currentTalk1 = "You must be quite brave";
-        currentTalk2 = "or stupid to be walking";
-        currentTalk3 = "around in this dungeon.";
-        currentTalk4 = "";
-        currentTalk5 = "How can I help you?";
+        data->currentTalk0 = "Oh hello?";
+        data->currentTalk1 = "You must be quite brave";
+        data->currentTalk2 = "or stupid to be walking";
+        data->currentTalk3 = "around in this dungeon.";
+        data->currentTalk4 = "";
+        data->currentTalk5 = "How can I help you?";
     break;
     case NPC_DWARF:
-        if(questManager.questlines[1].currentQuest<=1) {
-            questManager.questlines[1].currentQuest = 1;
+        if(questManager->questlines[1].currentQuest<=1) {
+            questManager->questlines[1].currentQuest = 1;
             
-            currentTalkOptions = 1;
-            currentTalkOption0 = "?";
+            data->currentTalkOptions = 1;
+            data->currentTalkOption0 = "?";
             
-            currentTalk0 = "Dwo neal bet reck da lo";
-            currentTalk1 = "dhum don lir lugn at el";
-            currentTalk2 = "nur tor erno ur yo trad";
-            currentTalk3 = "thra so tir kho ukk tin";
-            currentTalk4 = "hel dro ic";
-            currentTalk5 = "";
+            data->currentTalk0 = "Dwo neal bet reck da lo";
+            data->currentTalk1 = "dhum don lir lugn at el";
+            data->currentTalk2 = "nur tor erno ur yo trad";
+            data->currentTalk3 = "thra so tir kho ukk tin";
+            data->currentTalk4 = "hel dro ic";
+            data->currentTalk5 = "";
         //TODO: set to 2 once translation book has been bought from librarian(can only be done once it is 1, so the dwarf has been found once)
-        } else if(questManager.questlines[1].currentQuest==2) {
-            currentTalkOptions = 2;
-            currentTalkOption0 = "Not really";
-            currentTalkOption1 = "Trade";
+        } else if(questManager->questlines[1].currentQuest==2) {
+            data->currentTalkOptions = 2;
+            data->currentTalkOption0 = "Not really";
+            data->currentTalkOption1 = "Trade";
             
-            currentTalk0 = "How are ya?";
-            currentTalk1 = "Pretty unusal meeting a";
-            currentTalk2 = "human down here.";
-            currentTalk3 = "";
-            currentTalk4 = "have something valuable";
-            currentTalk5 = "to trade?";
+            data->currentTalk0 = "How are ya?";
+            data->currentTalk1 = "Pretty unusal meeting a";
+            data->currentTalk2 = "human down here.";
+            data->currentTalk3 = "";
+            data->currentTalk4 = "have something valuable";
+            data->currentTalk5 = "to trade?";
         }
     break;
     }
 }
 
-void tickTalkMenu() {
-    if (k_menu.clicked || k_decline.clicked) currentMenu = MENU_NONE;
+void tickTalkMenu(PlayerData *pd, NPC_MenuData *data) {
+    if (pd->inputs.k_menu.clicked || pd->inputs.k_decline.clicked) pd->ingameMenu = MENU_NONE;
 	
-    if (k_up.clicked){ ++currentTalkSel; if(currentTalkSel >= currentTalkOptions) currentTalkSel=0;}
-    if (k_down.clicked){ --currentTalkSel; if(currentTalkSel < 0) currentTalkSel=currentTalkOptions-1;}
+    if (pd->inputs.k_up.clicked){ ++data->currentTalkSel; if(data->currentTalkSel >= data->currentTalkOptions) data->currentTalkSel=0;}
+    if (pd->inputs.k_down.clicked){ --data->currentTalkSel; if(data->currentTalkSel < 0) data->currentTalkSel=data->currentTalkOptions-1;}
     
-    if(k_accept.clicked){
-        currentTalkDone = true;
+    if(pd->inputs.k_accept.clicked){
+        data->currentTalkDone = true;
     }
 }
 
-void tickNPCMenu() {
+void tickNPCMenu(PlayerData *pd) {
+    NPC_MenuData *data = &(pd->npcMenuData);
+    QuestlineManager *questManager = &(pd->questManager);
+    
     //TODO: Handle upon currentNPC as well as the fitting quest progress
-    if(currentNPCMenu==NPC_MENU_TALK) tickTalkMenu();
+    if(data->currentNPCMenu==NPC_MENU_TALK) tickTalkMenu(pd, data);
 
     
-    switch(currentNPC) {
+    switch(data->currentNPC) {
     case NPC_GIRL:
-        
+        if(data->currentNPCMenu==NPC_MENU_TALK && data->currentTalkDone) {
+            if(data->currentNPCVal==0) pd->ingameMenu = MENU_NONE;
+        }
     break;
     case NPC_PRIEST:
-        if(currentNPCMenu==NPC_MENU_TALK && currentTalkDone) {
-            if(currentNPCVal==0) {
-                if(currentTalkSel==0) {
-                    currentMenu = MENU_NONE;
-                } else if(currentTalkSel==1) {
-                    currentRecipes = &priestTrades;
-                    currentCraftTitle = "Trading";
-                    currentMenu = MENU_CRAFTING; 
-                    checkCanCraftRecipes(currentRecipes, player.p.inv);
-                    sortRecipes(currentRecipes);
-                } else if(currentTalkSel==2) {
-                    currentNPCVal = 1;
+        if(data->currentNPCMenu==NPC_MENU_TALK && data->currentTalkDone) {
+            if(data->currentNPCVal==0) {
+                if(data->currentTalkSel==0) {
+                    pd->ingameMenu = MENU_NONE;
+                } else if(data->currentTalkSel==1) {
+                    openCraftingMenu(pd, &priestTrades, "Trading");
+                } else if(data->currentTalkSel==2) {
+                    data->currentNPCVal = 1;
                     
-                    currentTalkSel = 0;
-                    currentTalkDone = false;
-                    currentTalkOptions = 1;
-                    currentTalkOption0 = "...";
+                    data->currentTalkSel = 0;
+                    data->currentTalkDone = false;
+                    data->currentTalkOptions = 1;
+                    data->currentTalkOption0 = "...";
                     
-                    currentTalk0 = "For quite some time now this";
-                    currentTalk1 = "village has been tyrannized";
-                    currentTalk2 = "by a powerfull Air Wizard.";
-                    currentTalk3 = "We are the only ones who";
-                    currentTalk4 = "still have not given up";
-                    currentTalk5 = "our old homes.";
+                    data->currentTalk0 = "For quite some time now this";
+                    data->currentTalk1 = "village has been tyrannized";
+                    data->currentTalk2 = "by a powerfull Air Wizard.";
+                    data->currentTalk3 = "We are the only ones who";
+                    data->currentTalk4 = "still have not given up";
+                    data->currentTalk5 = "our old homes.";
                 }
-            } else if(currentNPCVal==1) {
-                if(currentTalkSel==0) {
-                    currentNPCVal = 2;
+            } else if(data->currentNPCVal==1) {
+                if(data->currentTalkSel==0) {
+                    data->currentNPCVal = 2;
                     
-                    currentTalkSel = 0;
-                    currentTalkDone = false;
-                    currentTalkOptions = 1;
-                    currentTalkOption0 = "...";
+                    data->currentTalkSel = 0;
+                    data->currentTalkDone = false;
+                    data->currentTalkOptions = 1;
+                    data->currentTalkOption0 = "...";
                     
-                    currentTalk0 = "Most of the time the wizard";
-                    currentTalk1 = "hides somewhere in the";
-                    currentTalk2 = "cloudes. They can only be";
-                    currentTalk3 = "reached by a stairwell";
-                    currentTalk4 = "protected by an almost";
-                    currentTalk5 = "undestroyable stone barrier.";
+                    data->currentTalk0 = "Most of the time the wizard";
+                    data->currentTalk1 = "hides somewhere in the";
+                    data->currentTalk2 = "cloudes. They can only be";
+                    data->currentTalk3 = "reached by a stairwell";
+                    data->currentTalk4 = "protected by an almost";
+                    data->currentTalk5 = "undestroyable stone barrier.";
                 }
-            } else if(currentNPCVal==2) {
-                if(currentTalkSel==0) {
-                    currentNPCVal = 3;
+            } else if(data->currentNPCVal==2) {
+                if(data->currentTalkSel==0) {
+                    data->currentNPCVal = 3;
                     
-                    currentTalkSel = 0;
-                    currentTalkDone = false;
-                    currentTalkOptions = 1;
-                    currentTalkOption0 = "...";
+                    data->currentTalkSel = 0;
+                    data->currentTalkDone = false;
+                    data->currentTalkOptions = 1;
+                    data->currentTalkOption0 = "...";
                     
-                    currentTalk0 = "I am guessing you would ";
-                    currentTalk1 = "need tools atleast as";
-                    currentTalk2 = "strong as diamonds to be";
-                    currentTalk3 = "able to destroy it.";
-                    currentTalk4 = "";
-                    currentTalk5 = "";
+                    data->currentTalk0 = "I am guessing you would ";
+                    data->currentTalk1 = "need tools atleast as";
+                    data->currentTalk2 = "strong as diamonds to be";
+                    data->currentTalk3 = "able to destroy it.";
+                    data->currentTalk4 = "";
+                    data->currentTalk5 = "";
                 }
-            } else if(currentNPCVal==3) {
-                if(currentTalkSel==0) {
-                    currentNPCVal = 4;
+            } else if(data->currentNPCVal==3) {
+                if(data->currentTalkSel==0) {
+                    data->currentNPCVal = 4;
                     
-                    currentTalkSel = 0;
-                    currentTalkDone = false;
-                    currentTalkOptions = 2;
-                    currentTalkOption0 = "Let me do it!";
-                    currentTalkOption1 = "I am not sure";
+                    data->currentTalkSel = 0;
+                    data->currentTalkDone = false;
+                    data->currentTalkOptions = 2;
+                    data->currentTalkOption0 = "Let me do it!";
+                    data->currentTalkOption1 = "I am not sure";
                     
-                    currentTalk0 = "I am willing to give an";
-                    currentTalk1 = "ancient artifact passed";
-                    currentTalk2 = "down over generations to";
-                    currentTalk3 = "anybody who manages to";
-                    currentTalk4 = "chase the wizard away and";
-                    currentTalk5 = "come back with proof.";
+                    data->currentTalk0 = "I am willing to give an";
+                    data->currentTalk1 = "ancient artifact passed";
+                    data->currentTalk2 = "down over generations to";
+                    data->currentTalk3 = "anybody who manages to";
+                    data->currentTalk4 = "chase the wizard away and";
+                    data->currentTalk5 = "come back with proof.";
                 }
-            } else if(currentNPCVal==4) {
-                currentMenu = MENU_NONE;
+            } else if(data->currentNPCVal==4) {
+                pd->ingameMenu = MENU_NONE;
             }
         }
     break;
     case NPC_FARMER:
-        if(currentNPCMenu==NPC_MENU_TALK && currentTalkDone) {
-            if(currentNPCVal==0) {
-                if(currentTalkSel==0) {
-                    currentMenu = MENU_NONE;
-                } else if(currentTalkSel==1) {
-                    currentRecipes = &farmerTrades;
-                    currentCraftTitle = "Trading";
-                    currentMenu = MENU_CRAFTING; 
-                    checkCanCraftRecipes(currentRecipes, player.p.inv);
-                    sortRecipes(currentRecipes);
+        if(data->currentNPCMenu==NPC_MENU_TALK && data->currentTalkDone) {
+            if(data->currentNPCVal==0) {
+                if(data->currentTalkSel==0) {
+                    pd->ingameMenu = MENU_NONE;
+                } else if(data->currentTalkSel==1) {
+                    openCraftingMenu(pd, &farmerTrades, "Trading");
                 } 
             }
         }
     break;
     case NPC_LIBRARIAN:
-        if(currentNPCMenu==NPC_MENU_TALK && currentTalkDone) {
-            if(currentNPCVal==0) {
-                if(currentTalkSel==0) {
-                    currentMenu = MENU_NONE;
-                } else if(currentTalkSel==1) {
-                    currentNPCVal = 2;
+        if(data->currentNPCMenu==NPC_MENU_TALK && data->currentTalkDone) {
+            if(data->currentNPCVal==0) {
+                if(data->currentTalkSel==0) {
+                    pd->ingameMenu = MENU_NONE;
+                } else if(data->currentTalkSel==1) {
+                    data->currentNPCVal = 2;
                     
-                    currentTalkSel = 0;
-                    currentTalkDone = false;
-                    currentTalkOptions = 1;
-                    currentTalkOption0 = "Ok";
+                    data->currentTalkSel = 0;
+                    data->currentTalkDone = false;
+                    data->currentTalkOptions = 1;
+                    data->currentTalkOption0 = "Ok";
                     
-                    currentTalk0 = "The books in this dungeon";
-                    currentTalk1 = "house secrets that cannot be";
-                    currentTalk2 = "found anywhere else in the";
-                    currentTalk3 = "world. So I came to study";
-                    currentTalk4 = "them. Most are written in";
-                    currentTalk5 = "an ancient language.";
-                } else if(currentTalkSel==2) {
-                    currentNPCVal = 1;
+                    data->currentTalk0 = "The books in this dungeon";
+                    data->currentTalk1 = "house secrets that cannot be";
+                    data->currentTalk2 = "found anywhere else in the";
+                    data->currentTalk3 = "world. So I came to study";
+                    data->currentTalk4 = "them. Most are written in";
+                    data->currentTalk5 = "an ancient language.";
+                } else if(data->currentTalkSel==2) {
+                    data->currentNPCVal = 1;
                     
-                    currentTalkSel = 0;
-                    currentTalkDone = false;
-                    currentTalkOptions = 2;
-                    currentTalkOption0 = "I need to think about it";
-                    currentTalkOption1 = "Here they are";
+                    data->currentTalkSel = 0;
+                    data->currentTalkDone = false;
+                    data->currentTalkOptions = 2;
+                    data->currentTalkOption0 = "I need to think about it";
+                    data->currentTalkOption1 = "Here they are";
                     
-                    currentTalk0 = "So you have met a dwarf but";
-                    currentTalk1 = "had a little communication";
-                    currentTalk2 = "problem? I do have a dwarvish";
-                    currentTalk3 = "translation book but I havent";
-                    currentTalk4 = "read it yet. For 10 Gold bars";
-                    currentTalk5 = "I will give it to you anyway.";
+                    data->currentTalk0 = "So you have met a dwarf but";
+                    data->currentTalk1 = "had a little communication";
+                    data->currentTalk2 = "problem? I do have a dwarvish";
+                    data->currentTalk3 = "translation book but I havent";
+                    data->currentTalk4 = "read it yet. For 10 Gold bars";
+                    data->currentTalk5 = "I will give it to you anyway.";
                 }
-            } else if(currentNPCVal==1) {
-                if(currentTalkSel==0) {
-                    currentMenu = MENU_NONE;
-                } else if(currentTalkSel==1) {
-                    currentNPCVal = 2;
+            } else if(data->currentNPCVal==1) {
+                if(data->currentTalkSel==0) {
+                    pd->ingameMenu = MENU_NONE;
+                } else if(data->currentTalkSel==1) {
+                    data->currentNPCVal = 2;
                     
-                    currentTalkSel = 0;
-                    currentTalkDone = false;
-                    currentTalkOptions = 1;
-                    currentTalkOption0 = "";
+                    data->currentTalkSel = 0;
+                    data->currentTalkDone = false;
+                    data->currentTalkOptions = 1;
+                    data->currentTalkOption0 = "";
                     
-                    if(countItemInv(ITEM_GOLDINGOT,0,player.p.inv)>=10) {
+                    if(countItemInv(ITEM_GOLDINGOT, 0, &(pd->inventory))>=10) {
                         //remove gold from player inventory
                         //TODO: Maybe I should make a generic substract items method sometime
-                        Item* item = getItemFromInventory(ITEM_GOLDINGOT, player.p.inv);
+                        Item* item = getItemFromInventory(ITEM_GOLDINGOT, &(pd->inventory));
                         item->countLevel -= 10;
-                        if(item->countLevel < 1) removeItemFromInventory(item->slotNum, player.p.inv);
+                        if(item->countLevel < 1) removeItemFromInventory(item->slotNum, &(pd->inventory));
                         
-                        questManager.questlines[1].currentQuest = 2;
+                        questManager->questlines[1].currentQuest = 2;
+                       
+                        data->currentTalk0 = "Thank you these will be";
+                        data->currentTalk1 = "really helpfull.";
+                        data->currentTalk2 = "Here take this book with";
+                        data->currentTalk3 = "it you should be able to";
+                        data->currentTalk4 = "easily understand anything";
+                        data->currentTalk5 = "a dwarf can say.";
                         
-                        currentTalk0 = "Thank you these will be";
-                        currentTalk1 = "really helpful.";
-                        currentTalk2 = "Here take this book with";
-                        currentTalk3 = "it you should be able to";
-                        currentTalk4 = "easily understand anything";
-                        currentTalk5 = "a dwarf can say.";
-                        
-                        currentTalkOption0 = "Thanks";
+                        data->currentTalkOption0 = "Thanks";
                     } else {
-                        currentTalk0 = "You do not seem to have";
-                        currentTalk1 = "enough Gold Bars with you.";
-                        currentTalk2 = "";
-                        currentTalk3 = "Ask again when you have";
-                        currentTalk4 = "collected the 10 Bars.";
-                        currentTalk5 = "";
+                        data->currentTalk0 = "You do not seem to have";
+                        data->currentTalk1 = "enough Gold Bars with you.";
+                        data->currentTalk2 = "";
+                        data->currentTalk3 = "Ask again when you have";
+                        data->currentTalk4 = "collected the 10 Bars.";
+                        data->currentTalk5 = "";
                         
-                        currentTalkOption0 = "Ok";
+                        data->currentTalkOption0 = "Ok";
                     }
                 }
-            } else if(currentNPCVal==2) {
-                if(currentTalkSel==0) {
-                    currentMenu = MENU_NONE;
+            } else if(data->currentNPCVal==2) {
+                if(data->currentTalkSel==0) {
+                    pd->ingameMenu = MENU_NONE;
                 }
             }
         }
     break;
     case NPC_DWARF:
-        if(questManager.questlines[1].currentQuest<=1) {
-            if(currentNPCMenu==NPC_MENU_TALK && currentTalkDone) {
-                if(currentNPCVal==0) currentMenu = MENU_NONE;
+        if(questManager->questlines[1].currentQuest<=1) {
+            if(data->currentNPCMenu==NPC_MENU_TALK && data->currentTalkDone) {
+                if(data->currentNPCVal==0) pd->ingameMenu = MENU_NONE;
             }
-        } else if(questManager.questlines[1].currentQuest==2) {
-            if(currentNPCMenu==NPC_MENU_TALK && currentTalkDone) {
-                if(currentTalkSel==0) {
-                    currentMenu = MENU_NONE;
-                } else if(currentTalkSel==1) {
-                    currentRecipes = &dwarfTrades;
-                    currentCraftTitle = "Trading";
-                    currentMenu = MENU_CRAFTING; 
-                    checkCanCraftRecipes(currentRecipes, player.p.inv);
-                    sortRecipes(currentRecipes);
+        } else if(questManager->questlines[1].currentQuest==2) {
+            if(data->currentNPCMenu==NPC_MENU_TALK && data->currentTalkDone) {
+                if(data->currentTalkSel==0) {
+                    pd->ingameMenu = MENU_NONE;
+                } else if(data->currentTalkSel==1) {
+                    openCraftingMenu(pd, &dwarfTrades, "Trading");
                 }
             }
         }
@@ -383,44 +394,44 @@ void tickNPCMenu() {
     }
 }
 
-void renderTalkMenu(char * name) {
+void renderTalkMenu(NPC_MenuData *data, char * name) {
     renderFrame(1,1,24,14,0xFFFF1010);
     drawTextColor(name,24+1,14+1,0xFF000000);
 	drawTextColor(name,24,14,0xFF6FE2E2);
     
-    drawText(currentTalk0, 32, 32);
-    drawText(currentTalk1, 32, 48);
-    drawText(currentTalk2, 32, 64);
-    drawText(currentTalk3, 32, 80);
-    drawText(currentTalk4, 32, 96);
-    drawText(currentTalk5, 32, 112);
+    drawText(data->currentTalk0, 32, 32);
+    drawText(data->currentTalk1, 32, 48);
+    drawText(data->currentTalk2, 32, 64);
+    drawText(data->currentTalk3, 32, 80);
+    drawText(data->currentTalk4, 32, 96);
+    drawText(data->currentTalk5, 32, 112);
     
-    if(currentTalkOptions>=3) drawText(currentTalkOption2, 64, 147);
-    if(currentTalkOptions>=2) drawText(currentTalkOption1, 64, 171);
-    if(currentTalkOptions>=1) drawText(currentTalkOption0, 64, 195);
+    if(data->currentTalkOptions>=3) drawText(data->currentTalkOption2, 64, 147);
+    if(data->currentTalkOptions>=2) drawText(data->currentTalkOption1, 64, 171);
+    if(data->currentTalkOptions>=1) drawText(data->currentTalkOption0, 64, 195);
     
-    if(currentTalkOptions>=3 && currentTalkSel==2) drawText(">", 48, 147);
-    if(currentTalkOptions>=2 && currentTalkSel==1) drawText(">", 48, 171);
-    if(currentTalkOptions>=1 && currentTalkSel==0) drawText(">", 48, 195);
+    if(data->currentTalkOptions>=3 && data->currentTalkSel==2) drawText(">", 48, 147);
+    if(data->currentTalkOptions>=2 && data->currentTalkSel==1) drawText(">", 48, 171);
+    if(data->currentTalkOptions>=1 && data->currentTalkSel==0) drawText(">", 48, 195);
 }
 
-void renderNPCMenu(int xscr, int yscr) {
+void renderNPCMenu(NPC_MenuData *data) {
     //TODO: Handle upon currentNPC as well as the fitting quest progress
-    switch(currentNPC) {
+    switch(data->currentNPC) {
     case NPC_GIRL:
-        if(currentNPCMenu==NPC_MENU_TALK) renderTalkMenu("Girl Jill");
+        if(data->currentNPCMenu==NPC_MENU_TALK) renderTalkMenu(data, "Maria");
     break;
     case NPC_PRIEST:
-        if(currentNPCMenu==NPC_MENU_TALK) renderTalkMenu("Priest Brom");
+        if(data->currentNPCMenu==NPC_MENU_TALK) renderTalkMenu(data, "Priest Brom");
     break;
     case NPC_FARMER:
-        if(currentNPCMenu==NPC_MENU_TALK) renderTalkMenu("Farmer Garrow");
+        if(data->currentNPCMenu==NPC_MENU_TALK) renderTalkMenu(data, "Farmer Garrow");
     break;
     case NPC_LIBRARIAN:
-        if(currentNPCMenu==NPC_MENU_TALK) renderTalkMenu("Librarian Ajihad");
+        if(data->currentNPCMenu==NPC_MENU_TALK) renderTalkMenu(data, "Librarian Ajihad");
     break;
     case NPC_DWARF:
-        if(currentNPCMenu==NPC_MENU_TALK) renderTalkMenu("Dwarf Orik");
+        if(data->currentNPCMenu==NPC_MENU_TALK) renderTalkMenu(data, "Dwarf Orik");
     break;
     }
 }
