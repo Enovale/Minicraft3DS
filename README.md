@@ -7,7 +7,7 @@ Current Version: Version 1.6.1
 **Download:**
 
 If you just want to download the game prebuilt check the releases tab in Github:  
-https://github.com/andre111/Minicraft3DS/releases  
+https://github.com/Enova/Minicraft3DS/releases  
 For building the game yourself look below.  
 
 
