@@ -71,7 +71,7 @@ void updateMusic(int lvl, int time) {
 
 void loadSounds() {
 	loadSound(&snd_playerHurt, "romfs:/resources/playerhurt.raw");
-	loadSound(&snd_playerDeath, "romfs:/resources/playerdeath.raw");
+	loadSound(&snd_playerDeath, "romfs:/resources/death.raw");
 	loadSound(&snd_monsterHurt, "romfs:/resources/monsterhurt.raw");
 	loadSound(&snd_test, "romfs:/resources/test.raw");
 	loadSound(&snd_pickup, "romfs:/resources/pickup.raw");

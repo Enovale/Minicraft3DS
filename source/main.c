@@ -228,6 +228,7 @@ int main() {
 	networkExit();
 	csndExit();
     cfguExit();
+	romfsExit();
 	sf2d_fini();
 	return 0;
 }
