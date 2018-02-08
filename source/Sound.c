@@ -5,6 +5,7 @@ int soundListenerX;
 int soundListenerY;
 
 void loadSound(Sound * snd, char * filename){
+	romfsInit();
     FILE *file = fopen(filename, "rb");
     if(file != NULL){
         fseek(file, 0, SEEK_END);
@@ -14,6 +15,7 @@ void loadSound(Sound * snd, char * filename){
         fread(snd->buffer, 1, snd->size, file);
     }
     fclose(file);
+	romfsExit();
 }
 
 void playSound(Sound snd){
@@ -70,8 +72,7 @@ void updateMusic(int lvl, int time) {
 }
 
 void loadSounds() {
-	Result rc = romfsInit();
-	loadSound(&snd_playerHurt, "romfs:/resources/playerhurt.raw");
+	loadSound(&snd_playerHurt, "resources/playerhurt.raw");
 	loadSound(&snd_playerDeath, "resources/playerdeath.raw");
 	loadSound(&snd_monsterHurt, "resources/monsterhurt.raw");
 	loadSound(&snd_test, "resources/test.raw");
