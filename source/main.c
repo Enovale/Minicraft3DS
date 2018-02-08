@@ -85,6 +85,7 @@ extern int xscr, yscr;
 char debugText[34];
 char bossHealthText[34];
 int main() {
+	romfsInit();
     cfguInit();
     CFGU_GetSystemModel(&MODEL_3DS);
 	FILE * file;
