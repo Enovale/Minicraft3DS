@@ -58,8 +58,3 @@ build
 .project
 
 # Copyrighted Executables
-*.exe
-ctrtool
-makerom
-bannertool
-3dsxlink
