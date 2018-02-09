@@ -8,10 +8,10 @@ void loadSound(Sound * snd, char * filename){
     FILE *file = fopen(filename, "rb");
     if(file != NULL){
         fseek(file, 0, SEEK_END);
-        snd->size = ftell(file);
-        fseek(file, 0, SEEK_SET);
-        snd->buffer = linearAlloc(snd->size);
-        fread(snd->buffer, 1, snd->size, file);
+        snd->size = ftell(file)/2;
+       fseek(file, 0, SEEK_SET);
+        snd->buffer = linearAlloc(snd->size*sizeof(u16));
+       fread(snd->buffer, 1, snd->size, file);
     }
     fclose(file);
 }

@@ -1,6 +1,5 @@
 @echo off
 echo Building 3DSX/ELF/SMDH...
-set mypath=%cd%
 make
 echo Creating banner...
 bannertool.exe makebanner -i icons-banners/banner.png -a icons-banners/audio.wav -o icons-banners/banner.bnr
