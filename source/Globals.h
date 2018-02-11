@@ -89,6 +89,8 @@
 //WARNING: Having this set to different values in different clients will break multiplayer!
 #define TESTGODMODE false
 
+bool paused;
+
 u32 localUID;
 
 int loadedtp;

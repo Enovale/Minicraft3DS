@@ -368,7 +368,6 @@ void renderGame() {
 }
 
 void exitGame() {
-	romfsExit();
     networkDisconnect();
     synchronizerReset();
     

@@ -25,6 +25,8 @@
 
 //TODO: Something still causes desyncs very rarely
 
+static aptHookCookie cookie;
+
 void setupGame() {
     synchronizerInit(rand(), 1, 0);
     synchronizerSetPlayerUID(0, localUID);
@@ -76,6 +78,16 @@ void setupBGMap() {
 	sf2d_set_clear_color(0xFF6C6D82);
 	
 	initBGMap = 0;
+}
+static void task_apt_hook(APT_HookType hook, void* param) {
+	switch(hook) {
+		case APTHOOK_ONSUSPEND:
+			paused = true;
+			stopMusic();
+		break;
+		default:
+		break;
+	}
 }
 
 
@@ -188,7 +200,9 @@ int main() {
     initPlayers();
 	initRecipes();
     initTrades();
+	aptHook(&cookie, task_apt_hook, NULL);
 	while (aptMainLoop()) {
+		if (paused == true) playMusic(&music_menu);
 		if (quitGame) break;
 
 		if (initGame > 0 && --initGame==0) setupGame();
